@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(project1)
+project(master)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -28,11 +28,11 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(poseServer src/poseServer.cpp)
+add_executable(poseServer src/poseServer.cpp src/navigation_methods.cpp)
 target_link_libraries(poseServer ${catkin_LIBRARIES})
 
-add_executable(poseClient src/poseClient.cpp)
+add_executable(poseClient src/poseClient.cpp src/navigation_methods.cpp)
 target_link_libraries(poseClient ${catkin_LIBRARIES})
 
-add_dependencies(poseServer ${project1_EXPORTED_TARGETS})
-add_dependencies(poseClient ${project1_EXPORTED_TARGETS})
+add_dependencies(poseServer ${master_EXPORTED_TARGETS})
+add_dependencies(poseClient ${master_EXPORTED_TARGETS})

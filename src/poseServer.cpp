@@ -1,14 +1,15 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
-#include <project1/PoseAction.h>
+#include <master/PoseAction.h>
+#include "navigation_methods.h"
 
 class PoseAction {
 protected:
     ros::NodeHandle nh_;
-    actionlib::SimpleActionServer<project1::PoseAction> as_;
+    actionlib::SimpleActionServer<master::PoseAction> as_;
     std::string action_name_;
-    project1::PoseFeedback feedback_;
-    project1::PoseResult result_;
+    master::PoseFeedback feedback_;
+    master::PoseResult result_;
 
 public:
     PoseAction(std::string name) : as_(nh_, name, boost::bind(&PoseAction::executeCB, this, _1), false), action_name_(name)
@@ -18,15 +19,26 @@ public:
 
     ~PoseAction(void){}
 
-    void executeCB(const project1::PoseGoalConstPtr &goal) {
+    void executeCB(const master::PoseGoalConstPtr &goal) {
         
         ros::Rate(1);
 
-        ROS_INFO("Received goal: x=%f, y=%f, z=%f, theta=%f", goal->x, goal->y, goal->z, goal->theta);
-        
-        bool success = true;
+        Position goalPosition;
+        goalPosition.x = goal->x;
+        goalPosition.y = goal->y;
+        goalPosition.z = goal->z;
 
-        project1::PoseResult result;
+        ROS_INFO("Received goal: x=%f, y=%f, z=%f", goalPosition.x, goalPosition.y, goalPosition.z);
+
+        bool success = false;
+        int numberOfObstacles = 0;
+        std::vector<Obstacle> obstacles;
+
+        success = navigateRobotToGoal(goalPosition);
+        
+        //numberOfObstacles = scanObstacles(obstacles);
+
+        master::PoseResult result;
         result.arrived = success;
         as_.setSucceeded(result);
     }
