@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(assignment1)
+project(ir2324_group_10)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
