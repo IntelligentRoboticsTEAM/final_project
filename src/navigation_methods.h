@@ -5,9 +5,16 @@
 #include "Obstacle.h"
 
 struct Position {
-    float x;
-    float y;
-    float z;
+    float x, y, z;
+    float roll, pitch, yaw;
+};
+
+enum class Status : int {
+    STOPPED = 0,
+    MOVING = 1,
+    REACHED_GOAL = 2,
+    STARTED_SCAN = 3,
+    ENDED_SCAN = 4
 };
 
 // declarations

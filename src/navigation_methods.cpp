@@ -17,10 +17,7 @@ bool navigateRobotToGoal(const Position& goalPosition)
     goal.target_pose.pose.position.z = goalPosition.z;
     
     // Set orientation if required
-    // goal.target_pose.pose.orientation.w = ...;
-    // goal.target_pose.pose.orientation.x = ...;
-    // goal.target_pose.pose.orientation.y = ...;
-    // goal.target_pose.pose.orientation.z = ...;
+    goal.target_pose.pose.orientation.z = goalPosition.yaw;
 
     ac.sendGoal(goal);
 

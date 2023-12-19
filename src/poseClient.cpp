@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     goal.x = 5.00;
     goal.y = 2.00;
     goal.z = 0.00;
-    // goal.theta =     // ROLL, PITCH, YAW angles not required?
+    goal.theta_z = -90.00;
 
     ac.sendGoal(goal);
     bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
