@@ -1,15 +1,15 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
-#include <master/PoseAction.h>
+#include <assignment1/PoseAction.h>
 #include "navigation_methods.h"
 
 class PoseAction {
 protected:
     ros::NodeHandle nh_;
-    actionlib::SimpleActionServer<master::PoseAction> as_;
+    actionlib::SimpleActionServer<assignment1::PoseAction> as_;
     std::string action_name_;
-    master::PoseFeedback feedback_;
-    master::PoseResult result_;
+    assignment1::PoseFeedback feedback_;
+    assignment1::PoseResult result_;
 
 public:
     PoseAction(std::string name) : as_(nh_, name, boost::bind(&PoseAction::executeCB, this, _1), false), action_name_(name)
@@ -19,7 +19,7 @@ public:
 
     ~PoseAction(void){}
 
-    void executeCB(const master::PoseGoalConstPtr &goal) {
+    void executeCB(const assignment1::PoseGoalConstPtr &goal) {
         
         ros::Rate(1);
 
@@ -38,7 +38,7 @@ public:
         
         //numberOfObstacles = scanObstacles(obstacles);
 
-        master::PoseResult result;
+        assignment1::PoseResult result;
         result.arrived = success;
         as_.setSucceeded(result);
     }

@@ -1,0 +1,8 @@
+1. run start_tiago
+2. run vlab_script.sh FROM WS DIRECTORY (catkin_ws)
+
+
+start_tiago
+
+Create a package in vlab:
+catkin_create_pkg [new_package_name] [package_dependency] -m [yor_name]

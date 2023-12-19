@@ -1,16 +1,16 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <master/PoseAction.h>
+#include <assignment1/PoseAction.h>
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "client_pose");
-    actionlib::SimpleActionClient<master::PoseAction> ac("pose", true);
+    actionlib::SimpleActionClient<assignment1::PoseAction> ac("pose", true);
     ROS_INFO("Waiting for action server to start.");
     ac.waitForServer(); // will wait for infinite time
     ROS_INFO("Action server started.");
 
-    master::PoseGoal goal;
+    assignment1::PoseGoal goal;
 
     ROS_INFO("Enter desired x, y, z, and theta values:");
     //std::cin >> goal.x >> goal.y >> goal.z >> goal.theta;
