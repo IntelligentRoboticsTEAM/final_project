@@ -17,7 +17,13 @@ bool navigateRobotToGoal(const Position& goalPosition)
     goal.target_pose.pose.position.z = goalPosition.z;
     
     // Set orientation if required
-    goal.target_pose.pose.orientation.z = goalPosition.yaw;
+    //goal.target_pose.pose.orientation.z = goalPosition.yaw;
+    
+    tf2::Quaternion myQuaternion;
+    myQuaternion.setRPY( 0, 0, goalPosition.yaw);
+    myQuaternion.normalize();
+    
+    goal.target_pose.pose.orientation = tf2::toMsg(myQuaternion);
 
     ac.sendGoal(goal);
 

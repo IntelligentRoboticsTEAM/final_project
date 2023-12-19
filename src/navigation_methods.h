@@ -3,6 +3,8 @@
 
 #include <vector>
 #include "Obstacle.h"
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 struct Position {
     float x, y, z;
