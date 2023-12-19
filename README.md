@@ -1,29 +1,24 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+CONTENTS OF THE REPOSITORY
 
-### What is this repository for? ###
+assignment1 : package for the project
+vlab_specific_commands.txt : commands for the vlab 
+vlab_script.sh : contains necessary source commands (must be run in catkin_ws/)
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+TO USE vlab_script.sh (for our group use)
+1. move vlab_script.sh into catkin_ws/ 
+2. run start_tiago 
+3. cd into catkin_ws/
+4. chmod +x vlab_script.sh
+5. ./vlab_script.sh
 
-### How do I get set up? ###
+INSTRUCTIONS
+0. Clone repository in a directory other than the workspace
+1. Create the package assignment1 first in the catkin_ws/src directory
+	catkin_create_pkg assignment1 -m <name>
+2. catkin build in  catkin_ws/
+2. Replace the folder created by catkin with the folder assignment1
+3. catkin build in catkin_ws/
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
 
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
