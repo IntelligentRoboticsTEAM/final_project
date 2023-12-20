@@ -13,11 +13,11 @@ int main(int argc, char **argv) {
     ir2324_group_10::PoseGoal goal;
 
     ROS_INFO("Enter desired x, y, z, and theta values:");
-    //std::cin >> goal.x >> goal.y >> goal.z >> goal.theta;
-    goal.x = 11.00;
-    goal.y = 0.00;
-    goal.z = 0.00;
-    goal.theta_z = 0.00;
+    std::cin >> goal.x >> goal.y >> goal.z >> goal.theta_z;
+    //goal.x = 11.00;
+    //goal.y = 0.00;
+    //goal.z = 0.00;
+    //goal.theta_z = 1.58;
 
     ac.sendGoal(goal);
     bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
