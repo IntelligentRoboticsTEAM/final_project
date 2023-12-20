@@ -14,10 +14,10 @@ int main(int argc, char **argv) {
 
     ROS_INFO("Enter desired x, y, z, and theta values:");
     //std::cin >> goal.x >> goal.y >> goal.z >> goal.theta;
-    goal.x = 5.00;
-    goal.y = 2.00;
+    goal.x = 11.00;
+    goal.y = 0.00;
     goal.z = 0.00;
-    goal.theta_z = -90.00;
+    goal.theta_z = 0.00;
 
     ac.sendGoal(goal);
     bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
