@@ -12,7 +12,6 @@ protected:
     std::string action_name_;
     ir2324_group_10::PoseFeedback feedback_;
     ir2324_group_10::PoseResult result_;
-    ros::Publisher feedback_pub_; 
 
 public:
     bool executionDone = false;
@@ -20,14 +19,9 @@ public:
     PoseAction(std::string name) : as_(nh_, name, boost::bind(&PoseAction::executeCB, this, _1), false), action_name_(name)
     {
         as_.start();
-        feedback_pub_ = nh_.advertise<ir2324_group_10::PoseFeedback>("/feedback_messages", 10); 
     }
 
     ~PoseAction(void){}
-
-    void publishFeedback() {
-        feedback_pub_.publish(feedback_);
-    }
 
     void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
 
@@ -55,7 +49,8 @@ public:
         }
         
         feedback_.status = 4;
-        publishFeedback();
+
+        as_.publishFeedback(feedback_);
     }
 
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
@@ -67,17 +62,17 @@ public:
         goalPosition.yaw = goal->theta_z;
 
         feedback_.status = 0;
-        publishFeedback();
+        as_.publishFeedback(feedback_);
         ROS_INFO("Received goal: x=%f, y=%f, z=%f, theta_z=%f", goalPosition.x, goalPosition.y, goalPosition.z, goalPosition.yaw);
 
         int numberOfObstacle = 0;
         std::vector<Obstacle> obstacles;
 
         feedback_.status = 1;
-        publishFeedback();
+        as_.publishFeedback(feedback_);
         executionDone = navigateRobotToGoal(goalPosition);
         feedback_.status = 2;
-        publishFeedback();
+        as_.publishFeedback(feedback_);
 
         ir2324_group_10::PoseResult result;
 
@@ -85,13 +80,12 @@ public:
 
         result.arrived = executionDone;
         as_.setSucceeded(result);
-
-        publishFeedback();
+        as_.publishFeedback(feedback_);
     }
 
     void scanAfterNavigation() {
         feedback_.status = 3;
-        publishFeedback();
+        as_.publishFeedback(feedback_);
 
         if (executionDone) {
             ros::NodeHandle n;

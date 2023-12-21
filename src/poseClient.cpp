@@ -35,15 +35,15 @@ int main(int argc, char **argv) {
         actionlib::SimpleClientGoalState state = ac.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            const auto& result = *ac.getResult();
+            const bool& result = *ac.getResult();
             ROS_INFO("Received result: Arrived - %s", (result.arrived ? "true" : "false"));
         }
     } else {
         ROS_INFO("Action did not finish before the timeout.");
     }
 
-    ros::NodeHandle nh;
-    ros::Subscriber feedback_sub = nh.subscribe("/feedback_messages", 10, feedbackCallback);
+    // ros::NodeHandle nh;
+    // ros::Subscriber feedback_sub = nh.subscribe("/feedback_messages", 10, feedbackCallback);
 
     return 0;
 }
