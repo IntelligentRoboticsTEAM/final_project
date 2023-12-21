@@ -4,6 +4,8 @@
 #include <ir2324_group_10/PoseAction.h>
 #include "utils.h"
 
+void feedbackCallback(const ir2324_group_10::PoseFeedback::ConstPtr& feedback_msg);
+
 int main(int argc, char **argv) {
     ros::init(argc, argv, "client_pose");
     actionlib::SimpleActionClient<ir2324_group_10::PoseAction> ac("pose", true);
@@ -40,5 +42,33 @@ int main(int argc, char **argv) {
         ROS_INFO("Action did not finish before the timeout.");
     }
 
+    ros::NodeHandle nh;
+    ros::Subscriber feedback_sub = nh.subscribe("/feedback_messages", 10, feedbackCallback);
+
     return 0;
+}
+
+void feedbackCallback(const ir2324_group_10::PoseFeedback::ConstPtr& feedback_msg) {
+    int status = feedback_msg->status;
+
+    switch (status) {
+        case 0:
+            ROS_INFO("Received status: STOPPED");
+            break;
+        case 1:
+            ROS_INFO("Received status: MOVING");
+            break;
+        case 2:
+            ROS_INFO("Received status: REACHED_GOAL");
+            break;
+        case 3:
+            ROS_INFO("Received status: STARTED_SCAN");
+            break;
+        case 4:
+            ROS_INFO("Received status: ENDED_SCAN");
+            break;
+        default:
+            ROS_INFO("Received unknown status");
+            break;
+    }
 }

@@ -8,4 +8,4 @@ float32 theta_z
 bool arrived
 ---
 #feedback
-int32 feedback
+int32 status

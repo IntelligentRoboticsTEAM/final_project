@@ -12,6 +12,7 @@ protected:
     std::string action_name_;
     ir2324_group_10::PoseFeedback feedback_;
     ir2324_group_10::PoseResult result_;
+    ros::Publisher feedback_pub_; 
 
 public:
     bool executionDone = false;
@@ -19,9 +20,14 @@ public:
     PoseAction(std::string name) : as_(nh_, name, boost::bind(&PoseAction::executeCB, this, _1), false), action_name_(name)
     {
         as_.start();
+        feedback_pub_ = nh_.advertise<ir2324_group_10::PoseFeedback>("/feedback_messages", 10); 
     }
 
     ~PoseAction(void){}
+
+    void publishFeedback() {
+        feedback_pub_.publish(feedback_);
+    }
 
     void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
 
@@ -47,6 +53,9 @@ public:
                     i, o.getX(), o.getY(), o.getRadius());
             i++;
         }
+        
+        feedback_.status = 4;
+        publishFeedback();
     }
 
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
@@ -57,28 +66,33 @@ public:
         goalPosition.z = goal->z;
         goalPosition.yaw = goal->theta_z;
 
-        //feedback_.status = 0;
+        feedback_.status = 0;
+        publishFeedback();
         ROS_INFO("Received goal: x=%f, y=%f, z=%f, theta_z=%f", goalPosition.x, goalPosition.y, goalPosition.z, goalPosition.yaw);
 
         int numberOfObstacle = 0;
         std::vector<Obstacle> obstacles;
 
-        //feedback_.status = 1;
+        feedback_.status = 1;
+        publishFeedback();
         executionDone = navigateRobotToGoal(goalPosition);
-        
+        feedback_.status = 2;
+        publishFeedback();
+
         ir2324_group_10::PoseResult result;
 
         scanAfterNavigation();
 
         result.arrived = executionDone;
         as_.setSucceeded(result);
+
+        publishFeedback();
     }
 
-    // void startTimerForScanning() {
-    //     ros::Timer timer = nh_.createTimer(ros::Duration(1.0), boost::bind(&PoseAction::scanAfterNavigation, this));
-    // }
-
     void scanAfterNavigation() {
+        feedback_.status = 3;
+        publishFeedback();
+
         if (executionDone) {
             ros::NodeHandle n;
             ros::Subscriber sub = n.subscribe("/scan", 1000, &PoseAction::scanCallback, this);
