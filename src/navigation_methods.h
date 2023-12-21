@@ -21,6 +21,5 @@ enum class Status : int {
 
 // declarations
 bool navigateRobotToGoal(const Position& goalPosition);
-int scanObstacles(std::vector<Obstacle>& obstacles);
 
 #endif // NAVIGATION_METHODS_H

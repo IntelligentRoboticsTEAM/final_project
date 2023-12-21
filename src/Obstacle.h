@@ -17,10 +17,6 @@ public:
     float getX() const { return x; }
     float getY() const { return y; }
     float getRadius() const { return radius; }
-
-    void displayInfo() const {
-        std::cout << "Obstacle at position (" << x << ", " << y << ") with radius " << radius << std::endl;
-    }
 };
 
 #endif // OBSTACLE_H

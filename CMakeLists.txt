@@ -28,25 +28,25 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# List of source files
+# List of source files for poseServer
 set(SOURCE_FILES_SERVER
   src/poseServer.cpp
   src/navigation_methods.cpp
   src/utils.cpp  
+  src/scan_methods.cpp
 )
-
+# List of source files for  poseClient
 set(SOURCE_FILES_CLIENT
   src/poseClient.cpp
-  src/navigation_methods.cpp
   src/utils.cpp  
 )
 
-# Create the poseServer executable
+# poseServer executable
 add_executable(poseServer ${SOURCE_FILES_SERVER})
 target_link_libraries(poseServer ${catkin_LIBRARIES})
 add_dependencies(poseServer ${ir2324_group_10_EXPORTED_TARGETS})
 
-# Create the poseClient executable
+# poseClient executable
 add_executable(poseClient ${SOURCE_FILES_CLIENT})
 target_link_libraries(poseClient ${catkin_LIBRARIES})
 add_dependencies(poseClient ${ir2324_group_10_EXPORTED_TARGETS})

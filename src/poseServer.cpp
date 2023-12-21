@@ -3,6 +3,7 @@
 #include <ir2324_group_10/PoseAction.h>
 #include <sensor_msgs/LaserScan.h>
 #include "navigation_methods.h"
+#include "scan_methods.h"
 
 class PoseAction {
 protected:
@@ -23,7 +24,29 @@ public:
     ~PoseAction(void){}
 
     void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
-        //code
+
+        // 1) definitions
+        const std::vector<float> ranges = msg->ranges;
+        const float angle_increment = msg->angle_increment;
+        const float angle_min = msg->angle_min;
+        float th = 0.2;    // distance between two adjacent pts
+        std::vector<Obstacle> obstacles;
+
+        // 2) scan the obstacles
+        std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th);
+        obstacles = computeAvg(rangeClusters, angle_min, angle_increment);
+
+        // 3) publish clusters cartesian coordinates
+        ROS_INFO("Values in the array:");
+
+        int i = 1;
+        for (Obstacle o : obstacles) 
+        {    
+            ROS_INFO("--------------------");
+            ROS_INFO("Object n.%d:\nHas coordinates (X = %f, Y = %f)\nHas size (radius = %f)", 
+                    i, o.getX(), o.getY(), o.getRadius());
+            i++;
+        }
     }
 
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
@@ -45,6 +68,8 @@ public:
         
         ir2324_group_10::PoseResult result;
 
+        scanAfterNavigation();
+
         result.arrived = executionDone;
         as_.setSucceeded(result);
     }
@@ -53,13 +78,12 @@ public:
     //     ros::Timer timer = nh_.createTimer(ros::Duration(1.0), boost::bind(&PoseAction::scanAfterNavigation, this));
     // }
 
-    // void scanAfterNavigation() {
-    //     if (executionDone) {
-    //         ros::NodeHandle n;
-    //         ros::Subscriber sub = n.subscribe("/scan", 1000, &PoseAction::scanCallback, this);
-    //         // Start scanning obstacles or perform any other action after navigation
-    //     }
-    // }
+    void scanAfterNavigation() {
+        if (executionDone) {
+            ros::NodeHandle n;
+            ros::Subscriber sub = n.subscribe("/scan", 1000, &PoseAction::scanCallback, this);
+        }
+    }
 };
 
 
@@ -71,6 +95,7 @@ int main(int argc, char **argv) {
     //server.startTimerForScanning();
 
     ros::spin();
+
     return 0;
 
     // if (server.executionDone) {

@@ -8,6 +8,7 @@
 #include <cmath>
 
 double degreesToRadians(double degrees);
+std::pair<float, float> polarToCartesian(float r, float theta);
 
 // std::pair<float, float> polarToCartesian(float r, float theta);
 // std::vector<std::vector<float>> clusterRanges(const std::vector<float>& ranges, float th1, int th2);
