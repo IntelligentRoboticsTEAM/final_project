@@ -9,9 +9,11 @@ bool navigateRobotToGoal(const Position& goalPosition)
         ROS_INFO("Waiting for the move_base action server to come up");
     }
 
+    ros::Time startTime = ros::Time::now();
+
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
-    goal.target_pose.header.stamp = ros::Time::now();
+    goal.target_pose.header.stamp = startTime;
     goal.target_pose.pose.position.x = goalPosition.x;
     goal.target_pose.pose.position.y = goalPosition.y;
     goal.target_pose.pose.position.z = goalPosition.z;
@@ -30,11 +32,18 @@ bool navigateRobotToGoal(const Position& goalPosition)
     // Wait for the robot to reach the goal or a timeout
     bool goalReached = ac.waitForResult(ros::Duration(30.0));
 
+    ros::Time endTime = ros::Time::now();
+    ros::Duration duration = endTime - startTime;
+
     if (goalReached) {
         ROS_INFO("Robot reached the goal");
+        ROS_INFO("Duration: %f seconds", duration.toSec());
         return true;
     } else {
         ROS_INFO("Robot failed to reach the goal");
+        ROS_INFO("Duration: %f seconds", duration.toSec());
         return false;
     }
 }
+
+

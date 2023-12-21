@@ -2,6 +2,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <ir2324_group_10/PoseAction.h>
+#include "utils.h"
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "client_pose");
@@ -11,13 +12,19 @@ int main(int argc, char **argv) {
     ROS_INFO("Action server started.");
 
     ir2324_group_10::PoseGoal goal;
+    double degree_theta_z = 0.00;
 
-    ROS_INFO("Enter desired x, y, z, and theta values:");
-    //std::cin >> goal.x >> goal.y >> goal.z >> goal.theta;
-    goal.x = 11.00;
-    goal.y = 1.00;
-    goal.z = 0.00;
-    goal.theta_z = 0.00;
+    ROS_INFO("Enter desired x, y, z, and yaw angle values:");
+    ROS_INFO("X: ");
+    std::cin >> goal.x;     // BEST VALUE TO PICK: goal.x = 11.00;
+    ROS_INFO("Y: ");
+    std::cin >> goal.y;     // BEST VALUE TO PICK: goal.y = 1.00;
+    ROS_INFO("Z: ");
+    std::cin >> goal.z;     // BEST VALUE TO PICK: goal.z = 0.00;
+    ROS_INFO("Yaw angle: ");
+    std::cin >> degree_theta_z; // BEST VALUE TO PICK: goal.theta_z = -90)
+    
+    goal.theta_z = degreesToRadians(degree_theta_z);
 
     ac.sendGoal(goal);
     bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
