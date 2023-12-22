@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
             
             int num_obstacles = sizeof(result.obstacles)/sizeof(result.obstacles[0]);
             for(int i = 1; i <= num_obstacles; i++){
-            	ROS_INFO("Obstacle %d: x=%f, y=%f, size=%f", i, result.obstacles[i].x, result.obstacles[i].y, result.obstacles[i].radius);
+            	ROS_INFO("Obstacle %d: x=%f, y=%f, size=%f", i, result.obstacles[i-1].x, result.obstacles[i-1].y, result.obstacles[i-1].radius);
             }
         }
     } else {

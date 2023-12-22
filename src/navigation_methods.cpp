@@ -31,7 +31,7 @@ bool navigateRobotToGoal(const Position& goalPosition)
 
     // Wait for the robot to reach the goal before a fixed timeout
     bool goalReached = ac.waitForResult(ros::Duration(60.0));
-
+	/*
     if (goalReached) {
         ROS_INFO("Robot reached the goal");
         return true;
@@ -39,6 +39,7 @@ bool navigateRobotToGoal(const Position& goalPosition)
         ROS_INFO("Robot failed to reach the goal");
         return false;
     }
+    */
 }
 
 
