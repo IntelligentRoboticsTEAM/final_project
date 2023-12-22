@@ -36,7 +36,10 @@ public:
         // 2) scan the obstacles
         std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th);
         obstacles = computeAvg(rangeClusters, angle_min, angle_increment);
-
+        
+        // 2.1) convert the obstacles' vector into a message
+        std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
+        
         // 3) publish clusters cartesian coordinates
         ROS_INFO("Values in the array:");
 
@@ -51,6 +54,11 @@ public:
         
         feedback_.status = 4;
         as_.publishFeedback(feedback_);
+
+        ir2324_group_10::PoseResult result;
+        result.arrived = true;
+        result.obstacles = msgObstacles; 
+        as_.setSucceeded(result);
     }
 
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
@@ -74,13 +82,27 @@ public:
         feedback_.status = 2;
         as_.publishFeedback(feedback_);
 
-        ir2324_group_10::PoseResult result;
-
         scanAfterNavigation();
-
-        result.arrived = executionDone;
-        as_.setSucceeded(result);
     }
+
+    // Convert std::vector<Obstacle> to ir2324_group_10::Obstacle[]
+    std::vector<ir2324_group_10::Obstacle> convertToMsgType(const std::vector<Obstacle>& obstacles) {
+        std::vector<ir2324_group_10::Obstacle> msgObstacles;
+
+        for (const Obstacle& obstacle : obstacles) 
+        {
+            ir2324_group_10::Obstacle msgObstacle;
+            msgObstacle.x = obstacle.getX();
+            msgObstacle.y = obstacle.getY();
+            msgObstacle.radius = obstacle.getRadius();
+
+            msgObstacles.push_back(msgObstacle);
+        }
+
+        return msgObstacles;
+    }
+
+
 
     void scanAfterNavigation() {
         feedback_.status = 3;

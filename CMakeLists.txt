@@ -9,6 +9,11 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
 )
 
+add_message_files(
+  FILES
+  Obstacle.msg
+)
+
 add_action_files(
   DIRECTORY action
   FILES Pose.action

@@ -6,6 +6,7 @@ float32 theta_z
 ---
 #result
 bool arrived
+ir2324_group_10/Obstacle[] obstacles
 ---
 #feedback
 int32 status
