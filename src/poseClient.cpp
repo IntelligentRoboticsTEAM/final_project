@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
 
     ir2324_group_10::PoseGoal goal;
     double degree_theta_z = 0.00;
-
+	
+	//user input
     ROS_INFO("Enter desired x, y, z, and yaw angle values:\n");
     ROS_INFO("X: ");
     std::cin >> goal.x;     // BEST VALUE TO PICK: goal.x = 11.00;
@@ -49,11 +50,16 @@ int main(int argc, char **argv) {
     ROS_INFO("Yaw angle: ");
     std::cin >> degree_theta_z; // BEST VALUE TO PICK: goal.theta_z = -90)
     
+    //conversion to radiants
     goal.theta_z = degreesToRadians(degree_theta_z);
     
+    //send goal to server
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
+    
+    //waiting for result from server
     bool finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
-
+	
+	//print result
     if (finished_before_timeout) {
         actionlib::SimpleClientGoalState state = ac.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
@@ -63,6 +69,8 @@ int main(int argc, char **argv) {
         }
     } else {
         ROS_INFO("Action did not finish before the timeout.");
+        ac.cancelGoal();
+        ROS_INFO("Goal has been cancelled");
     }
 
     return 0;

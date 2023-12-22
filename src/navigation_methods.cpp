@@ -9,39 +9,34 @@ bool navigateRobotToGoal(const Position& goalPosition)
         ROS_INFO("Waiting for the move_base action server to come up");
     }
 
+    //define goal
     ros::Time startTime = ros::Time::now();
-
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = startTime;
+    
+    //set goal position
     goal.target_pose.pose.position.x = goalPosition.x;
     goal.target_pose.pose.position.y = goalPosition.y;
     goal.target_pose.pose.position.z = goalPosition.z;
     
-    // Set orientation if required
-    //goal.target_pose.pose.orientation.z = goalPosition.yaw;
-    
+    // Set goal orientation
     tf2::Quaternion myQuaternion;
     myQuaternion.setRPY( 0, 0, goalPosition.yaw);
     myQuaternion.normalize();
-    
     goal.target_pose.pose.orientation = tf2::toMsg(myQuaternion);
 
+	//send goal to ActionServer
     ac.sendGoal(goal);
 
-    // Wait for the robot to reach the goal or a timeout
+    // Wait for the robot to reach the goal before a fixed timeout
     bool goalReached = ac.waitForResult(ros::Duration(60.0));
-
-    ros::Time endTime = ros::Time::now();
-    ros::Duration duration = endTime - startTime;
 
     if (goalReached) {
         ROS_INFO("Robot reached the goal");
-        ROS_INFO("Duration: %f seconds", duration.toSec());
         return true;
     } else {
         ROS_INFO("Robot failed to reach the goal");
-        ROS_INFO("Duration: %f seconds", duration.toSec());
         return false;
     }
 }

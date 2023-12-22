@@ -12,10 +12,10 @@ protected:
     std::string action_name_;
     ir2324_group_10::PoseFeedback feedback_;
     ir2324_group_10::PoseResult result_;
-    ros::Publisher feedback_pub_; 
 
 public:
     bool executionDone = false;
+    bool scan_status = false;
 
     PoseAction(std::string name) : as_(nh_, name, boost::bind(&PoseAction::executeCB, this, _1), false), action_name_(name)
     {
@@ -44,7 +44,7 @@ public:
         ROS_INFO("Values in the array:");
 
         int i = 1;
-        for (Obstacle o : obstacles) 
+        for(Obstacle o : obstacles)
         {    
             ROS_INFO("--------------------");
             ROS_INFO("Object n.%d:\nHas coordinates (X = %f, Y = %f)\nHas size (radius = %f)", 
@@ -54,15 +54,13 @@ public:
         
         feedback_.status = 4;
         as_.publishFeedback(feedback_);
-
-        ir2324_group_10::PoseResult result;
-        result.arrived = true;
-        result.obstacles = msgObstacles; 
-        as_.setSucceeded(result);
+        result_.arrived = true;
+        result_.obstacles = msgObstacles;
+        scan_status = true;
     }
 
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
-        //ros::Rate(1);
+
         Position goalPosition;
         goalPosition.x = goal->x;
         goalPosition.y = goal->y;
@@ -81,8 +79,16 @@ public:
         executionDone = navigateRobotToGoal(goalPosition);
         feedback_.status = 2;
         as_.publishFeedback(feedback_);
-
+	
         scanAfterNavigation();
+        
+        while(!scan_status){
+        	ros::Duration(0.1).sleep();
+        }
+        
+        //ir2324_group_10::PoseResult result; 
+        
+        as_.setSucceeded(result_);
     }
 
     // Convert std::vector<Obstacle> to ir2324_group_10::Obstacle[]
@@ -111,6 +117,7 @@ public:
         if (executionDone) {
             ros::NodeHandle n;
             ros::Subscriber sub = n.subscribe("/scan", 1000, &PoseAction::scanCallback, this);
+            
         }
     }
 };
@@ -121,24 +128,7 @@ int main(int argc, char **argv) {
     PoseAction server("pose");
     ROS_INFO("Server is running...");
 
-    //server.startTimerForScanning();
-
     ros::spin();
 
     return 0;
-
-    // if (server.executionDone) {
-    //     // Update feedback when the robot reaches the goal
-    //     //feedback_.status = 2;  // 2 represents reaching the goal
-
-    //     // Start scanning obstacles
-    //     //feedback_.status = 3;  // 3 represents starting obstacle scanning
-    //     ros::NodeHandle n;
-    //     ros::Subscriber sub = n.subscribe("/scan", 1000, &PoseAction::scanCallback, &server);
-    //     //success_scan = scanObstacles(obstacles, numberOfObstacles);
-
-    //     // if(success_scan)
-    //     //     feedback_.status = 4;  // 4 represents ending obstacle scanning
-    // }
-
 }
