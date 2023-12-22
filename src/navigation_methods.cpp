@@ -30,7 +30,7 @@ bool navigateRobotToGoal(const Position& goalPosition)
     ac.sendGoal(goal);
 
     // Wait for the robot to reach the goal or a timeout
-    bool goalReached = ac.waitForResult(ros::Duration(30.0));
+    bool goalReached = ac.waitForResult(ros::Duration(60.0));
 
     ros::Time endTime = ros::Time::now();
     ros::Duration duration = endTime - startTime;
@@ -45,5 +45,4 @@ bool navigateRobotToGoal(const Position& goalPosition)
         return false;
     }
 }
-
 
