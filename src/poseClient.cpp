@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     ir2324_group_10::PoseGoal goal;
     double degree_theta_z = 0.00;
 
-    ROS_INFO("Enter desired x, y, z, and yaw angle values:");
+    ROS_INFO("Enter desired x, y, z, and yaw angle values:\n");
     ROS_INFO("X: ");
     std::cin >> goal.x;     // BEST VALUE TO PICK: goal.x = 11.00;
     ROS_INFO("Y: ");
@@ -50,9 +50,6 @@ int main(int argc, char **argv) {
     std::cin >> degree_theta_z; // BEST VALUE TO PICK: goal.theta_z = -90)
     
     goal.theta_z = degreesToRadians(degree_theta_z);
-
-	ros::NodeHandle nh;
-    ros::Subscriber feedback_sub = nh.subscribe("/feedback_messages", 10, feedbackCallback);
     
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
     bool finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
