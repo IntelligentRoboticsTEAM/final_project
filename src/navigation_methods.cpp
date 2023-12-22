@@ -46,3 +46,4 @@ bool navigateRobotToGoal(const Position& goalPosition)
     }
 }
 
+
