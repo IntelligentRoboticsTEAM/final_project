@@ -12,15 +12,16 @@ protected:
     std::string action_name_;
     ir2324_group_10::PoseFeedback feedback_;
     ir2324_group_10::PoseResult result_;
+    ros::Publisher feedback_pub_; 
 
 public:
     bool executionDone = false;
 
     PoseAction(std::string name) : as_(nh_, name, boost::bind(&PoseAction::executeCB, this, _1), false), action_name_(name)
     {
-        as_.start();
+    	as_.start();
     }
-
+    
     ~PoseAction(void){}
 
     void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
@@ -49,7 +50,6 @@ public:
         }
         
         feedback_.status = 4;
-
         as_.publishFeedback(feedback_);
     }
 
@@ -80,7 +80,6 @@ public:
 
         result.arrived = executionDone;
         as_.setSucceeded(result);
-        as_.publishFeedback(feedback_);
     }
 
     void scanAfterNavigation() {
