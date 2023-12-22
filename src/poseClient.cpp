@@ -66,6 +66,11 @@ int main(int argc, char **argv) {
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
             const auto& result = *ac.getResult();
             ROS_INFO("Received result: Arrived - %s", (result.arrived ? "true" : "false"));
+            
+            int num_obstacles = sizeof(result.obstacles)/sizeof(result.obstacles[0]);
+            for(int i = 1; i <= num_obstacles; i++){
+            	ROS_INFO("Obstacle %d: x=%f, y=%f, size=%f", i, result.obstacles[i].x, result.obstacles[i].y, result.obstacles[i].radius);
+            }
         }
     } else {
         ROS_INFO("Action did not finish before the timeout.");

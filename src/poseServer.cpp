@@ -40,17 +40,7 @@ public:
         // 2.1) convert the obstacles' vector into a message
         std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
         
-        // 3) publish clusters cartesian coordinates
-        ROS_INFO("Values in the array:");
-
-        int i = 1;
-        for(Obstacle o : obstacles)
-        {    
-            ROS_INFO("--------------------");
-            ROS_INFO("Object n.%d:\nHas coordinates (X = %f, Y = %f)\nHas size (radius = %f)", 
-                    i, o.getX(), o.getY(), o.getRadius());
-            i++;
-        }
+        ROS_INFO("ci sono");
         
         feedback_.status = 4;
         as_.publishFeedback(feedback_);
