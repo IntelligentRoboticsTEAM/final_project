@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
             int num_obstacles = result.obstacles.size();
 			ROS_INFO("Displaying obstacles coords (from tiago reference frame):");
             for(int i = 2; i <= num_obstacles; i++){
-            	ROS_INFO("Obstacle %d: x=%f, y=%f, cluster index=%f", i-1, result.obstacles[i-1].x, result.obstacles[i-1].y, result.obstacles[i-1].radius);
+            	ROS_INFO("Obstacle %d: x=%f, y=%f", i-1, result.obstacles[i-1].x, result.obstacles[i-1].y);
             }
         }
     } else {
