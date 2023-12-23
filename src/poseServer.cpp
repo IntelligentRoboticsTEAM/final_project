@@ -60,15 +60,16 @@ public:
 			const std::vector<float> ranges = msg->ranges;
 			const float angle_increment = msg->angle_increment;
 			const float angle_min = msg->angle_min;
-			float th = 0.2;    // distance between two adjacent pts
-			
+			float th_distance = 0.8;    // distance between two adjacent pts		
+
 			// Scanning
 		    feedback_.status = 3;
 			as_.publishFeedback(feedback_);
 
 			// 2) scan the obstacles
-			std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th);
-			obstacles = computeAvg(rangeClusters, angle_min, angle_increment);
+			std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th_distance);
+			ROS_INFO("NUM clusters: %ld", rangeClusters.size());
+			obstacles = findObstacles1(rangeClusters, angle_min, angle_increment);
 			
 			// 2.1) convert the obstacles' vector into a message
 			std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
@@ -79,7 +80,9 @@ public:
 			result_.obstacles = msgObstacles;
 		    as_.setSucceeded(result_);
 
-		}else as_.setAborted(result_);
+		}else {
+		ROS_INFO("Navigation aborted - Timeout reached");
+		as_.setAborted(result_);}
     }
 
     // Convert std::vector<Obstacle> to ir2324_group_10::Obstacle[]

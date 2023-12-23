@@ -65,9 +65,10 @@ int main(int argc, char **argv) {
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
             const auto& result = *ac.getResult();          
-            int num_obstacles = sizeof(result.obstacles)/sizeof(result.obstacles[0]);
-            for(int i = 1; i <= num_obstacles; i++){
-            	ROS_INFO("Obstacle %d: x=%f, y=%f, size=%f", i, result.obstacles[i-1].x, result.obstacles[i-1].y, result.obstacles[i-1].radius);
+            int num_obstacles = result.obstacles.size();
+			ROS_INFO("Displaying obstacles coords (from tiago reference frame) num_obstacles=%d:\n", num_obstacles);
+            for(int i = 2; i <= num_obstacles; i++){
+            	ROS_INFO("Obstacle %d: x=%f, y=%f, cluster index=%f", i-1, result.obstacles[i-1].x, result.obstacles[i-1].y, result.obstacles[i-1].radius);
             }
         }
     } else {

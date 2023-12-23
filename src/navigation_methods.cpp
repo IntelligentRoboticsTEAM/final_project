@@ -31,6 +31,7 @@ bool navigateRobotToGoal(const Position& goalPosition)
 
     // Wait for the robot to reach the goal before a fixed timeout
     bool goalReached = ac.waitForResult(ros::Duration(60.0));
+	if(!goalReached) ac.cancelGoal();
     return goalReached;
 }
 
