@@ -68,7 +68,6 @@ public:
 
 			// 2) scan the obstacles
 			std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th_distance);
-			ROS_INFO("NUM clusters: %ld", rangeClusters.size());
 			obstacles = findObstacles1(rangeClusters, angle_min, angle_increment);
 			
 			// 2.1) convert the obstacles' vector into a message

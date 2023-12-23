@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     double degree_theta_z = 0.00;
 	
 	//user input
-    ROS_INFO("Enter desired x, y, z, and yaw angle values:\n");
+    ROS_INFO("Enter desired x, y, z, and yaw angle values:");
     ROS_INFO("X: ");
     std::cin >> goal.x;     // BEST VALUE TO PICK: goal.x = 11.00;
     ROS_INFO("Y: ");
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
             const auto& result = *ac.getResult();          
             int num_obstacles = result.obstacles.size();
-			ROS_INFO("Displaying obstacles coords (from tiago reference frame) num_obstacles=%d:\n", num_obstacles);
+			ROS_INFO("Displaying obstacles coords (from tiago reference frame):");
             for(int i = 2; i <= num_obstacles; i++){
             	ROS_INFO("Obstacle %d: x=%f, y=%f, cluster index=%f", i-1, result.obstacles[i-1].x, result.obstacles[i-1].y, result.obstacles[i-1].radius);
             }
