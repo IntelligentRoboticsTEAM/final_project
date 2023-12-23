@@ -10,5 +10,6 @@
 
 double degreesToRadians(double degrees);
 std::pair<float, float> polarToCartesian(float r, float theta);
+std::vector<ir2324_group_10::Obstacle> convertToMsgType(const std::vector<Obstacle>& obstacles);
 
 #endif
