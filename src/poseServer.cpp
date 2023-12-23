@@ -24,81 +24,62 @@ public:
     }
     
     ~PoseAction(void){}
-	/*
-    void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg) {
-		ROS_INFO("scancallback");
-
-		feedback_.status = 3;
-	    as_.publishFeedback(feedback_);
-	    
-	    // 1) definitions
-	    const std::vector<float> ranges = msg->ranges;
-	    const float angle_increment = msg->angle_increment;
-	    const float angle_min = msg->angle_min;
-	    float th = 0.2;    // distance between two adjacent pts
-	    std::vector<Obstacle> obstacles;
-
-	    // 2) scan the obstacles
-	    std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th);
-	    obstacles = computeAvg(rangeClusters, angle_min, angle_increment);
-	    
-	    // 2.1) convert the obstacles' vector into a message
-	    std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
-	    
-	    feedback_.status = 4;
-	    as_.publishFeedback(feedback_);
-	    result_.arrived = true;
-	    result_.obstacles = msgObstacles;
-		 
-    }
-    */
 
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
 
+		feedback_.status = 0;
+        as_.publishFeedback(feedback_);
+
+		// Initializing data for goalPosition
         Position goalPosition;
         goalPosition.x = goal->x;
         goalPosition.y = goal->y;
         goalPosition.z = goal->z;
         goalPosition.yaw = goal->theta_z;
-
-        feedback_.status = 0;
-        as_.publishFeedback(feedback_);
         ROS_INFO("Received goal: x=%f, y=%f, z=%f, theta_z=%f", goalPosition.x, goalPosition.y, goalPosition.z, goalPosition.yaw);
 
-        int numberOfObstacle = 0;
-        std::vector<Obstacle> obstacles;
-
+		// Navigation
         feedback_.status = 1;
         as_.publishFeedback(feedback_);
         executionDone = navigateRobotToGoal(goalPosition);
-        feedback_.status = 2;
-        as_.publishFeedback(feedback_);
-        
-        ros::NodeHandle n;
-		boost::shared_ptr<const sensor_msgs::LaserScan> msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", n);
-        
-        feedback_.status = 3;
-	    as_.publishFeedback(feedback_);
-	    
-	    // 1) definitions
-	    const std::vector<float> ranges = msg->ranges;
-	    const float angle_increment = msg->angle_increment;
-	    const float angle_min = msg->angle_min;
-	    float th = 0.2;    // distance between two adjacent pts
 
-	    // 2) scan the obstacles
-	    std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th);
-	    obstacles = computeAvg(rangeClusters, angle_min, angle_increment);
-	    
-	    // 2.1) convert the obstacles' vector into a message
-	    std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
-	    
-	    feedback_.status = 4;
-	    as_.publishFeedback(feedback_);
-	    result_.arrived = true;
-	    result_.obstacles = msgObstacles;
-        
-        as_.setSucceeded(result_);
+		if(executionDone)
+		{
+			//Sending REACHED_GOAL to feedback
+		    feedback_.status = 2;
+		    as_.publishFeedback(feedback_);
+			
+			// Once we are in the correct location we read the /scan topic contents
+		    ros::NodeHandle n;
+			boost::shared_ptr<const sensor_msgs::LaserScan> msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", n);
+		    
+			// Initializing the structure to store the obstacles data
+        	int numberOfObstacle = 0;
+        	std::vector<Obstacle> obstacles;
+			// 1) definitions needed
+			const std::vector<float> ranges = msg->ranges;
+			const float angle_increment = msg->angle_increment;
+			const float angle_min = msg->angle_min;
+			float th = 0.2;    // distance between two adjacent pts
+			
+			// Scanning
+		    feedback_.status = 3;
+			as_.publishFeedback(feedback_);
+
+			// 2) scan the obstacles
+			std::vector<std::vector<float>> rangeClusters = clusterRanges(ranges, th);
+			obstacles = computeAvg(rangeClusters, angle_min, angle_increment);
+			
+			// 2.1) convert the obstacles' vector into a message
+			std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
+			
+			// Scan ended
+			feedback_.status = 4;
+			as_.publishFeedback(feedback_);
+			result_.obstacles = msgObstacles;
+		    as_.setSucceeded(result_);
+
+		}else as_.setAborted(result_);
     }
 
     // Convert std::vector<Obstacle> to ir2324_group_10::Obstacle[]

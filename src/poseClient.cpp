@@ -64,9 +64,7 @@ int main(int argc, char **argv) {
         actionlib::SimpleClientGoalState state = ac.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            const auto& result = *ac.getResult();
-            ROS_INFO("Received result: Arrived - %s", (result.arrived ? "true" : "false"));
-            
+            const auto& result = *ac.getResult();          
             int num_obstacles = sizeof(result.obstacles)/sizeof(result.obstacles[0]);
             for(int i = 1; i <= num_obstacles; i++){
             	ROS_INFO("Obstacle %d: x=%f, y=%f, size=%f", i, result.obstacles[i-1].x, result.obstacles[i-1].y, result.obstacles[i-1].radius);
