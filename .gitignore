@@ -19,6 +19,8 @@ dist/
 # Package files
 *.jar
 
+*.swp
+
 # Maven
 target/
 dist/
