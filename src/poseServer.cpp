@@ -6,6 +6,9 @@
 #include "navigation_methods.h"
 #include "scan_methods.h"
 
+/**
+ * @brief Defines a class for handling pose actions.
+ */
 class PoseAction {
 protected:
     ros::NodeHandle nh_;
@@ -25,6 +28,11 @@ public:
     
     ~PoseAction(void){}
 
+
+    /**
+     * @brief Callback function for executing the navigation action.
+     * @param goal The goal for the pose action.
+     */
     void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
 
 		feedback_.status = 0;
@@ -82,23 +90,6 @@ public:
 		}else {
 		ROS_INFO("Navigation aborted - Timeout reached");
 		as_.setAborted(result_);}
-    }
-
-    // Convert std::vector<Obstacle> to ir2324_group_10::Obstacle[]
-    std::vector<ir2324_group_10::Obstacle> convertToMsgType(const std::vector<Obstacle>& obstacles) {
-        std::vector<ir2324_group_10::Obstacle> msgObstacles;
-
-        for (const Obstacle& obstacle : obstacles) 
-        {
-            ir2324_group_10::Obstacle msgObstacle;
-            msgObstacle.x = obstacle.getX();
-            msgObstacle.y = obstacle.getY();
-            msgObstacle.radius = obstacle.getRadius();
-
-            msgObstacles.push_back(msgObstacle);
-        }
-
-        return msgObstacles;
     }
 };
 

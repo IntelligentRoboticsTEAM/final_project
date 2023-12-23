@@ -6,16 +6,9 @@
 #include <cmath>
 #include <utility>
 #include <cmath>
+#include <ir2324_group_10/PoseAction.h>
 
 double degreesToRadians(double degrees);
 std::pair<float, float> polarToCartesian(float r, float theta);
-
-// std::pair<float, float> polarToCartesian(float r, float theta);
-// std::vector<std::vector<float>> clusterRanges(const std::vector<float>& ranges, float th1, int th2);
-
-// void computeAvg(const std::vector<std::vector<float>> &rangeClusters,
-//                 std::vector<std::pair<float, float>> &outputCluster,
-//                 float angle_min, float angle_increment);
-
 
 #endif

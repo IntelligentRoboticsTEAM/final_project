@@ -4,6 +4,11 @@
 #include <ir2324_group_10/PoseAction.h>
 #include "utils.h"
 
+
+/**
+ * @brief Callback function to handle feedback from the PoseAction server.
+ * @param feedback The feedback received from the server.
+ */
 void feedbackCallback(const ir2324_group_10::PoseFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
@@ -50,7 +55,7 @@ int main(int argc, char **argv) {
     ROS_INFO("Yaw angle: ");
     std::cin >> degree_theta_z; // BEST VALUE TO PICK: goal.theta_z = -90)
     
-    //conversion to radiants
+    //conversion to radians
     goal.theta_z = degreesToRadians(degree_theta_z);
     
     //send goal to server

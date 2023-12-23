@@ -2,6 +2,11 @@
 #include <actionlib/client/simple_action_client.h>
 #include <move_base_msgs/MoveBaseAction.h>
 
+/**
+ * @brief This method navigates the robot to a specified goal pose (location + direction angle)
+ * @param goalPosition which is the target position to navigate towards.
+ * @return TRUE if the robot reaches the goal within the timeout and FALSE otherwise.
+ */
 bool navigateRobotToGoal(const Position& goalPosition) 
 {
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
