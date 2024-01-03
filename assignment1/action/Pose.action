@@ -5,7 +5,7 @@ float32 z
 float32 theta_z
 ---
 #result
-ir2324_group_10/Obstacle[] obstacles
+assignment1/Obstacle[] obstacles
 ---
 #feedback
 int32 status

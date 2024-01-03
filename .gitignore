@@ -51,3 +51,5 @@ Thumbs.db
 *.wmv
 
 ‘tiago_iaslab_simulation/’
+'.vscode'
+'settings.json'

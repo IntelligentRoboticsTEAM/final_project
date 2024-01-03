@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
-#include <ir2324_group_10/PoseAction.h>
+#include <assignment1/PoseAction.h>
 #include <sensor_msgs/LaserScan.h>
 #include <ros/topic.h>
 #include "navigation_methods.h"
@@ -12,10 +12,10 @@
 class PoseAction {
 protected:
     ros::NodeHandle nh_;
-    actionlib::SimpleActionServer<ir2324_group_10::PoseAction> as_;
+    actionlib::SimpleActionServer<assignment1::PoseAction> as_;
     std::string action_name_;
-    ir2324_group_10::PoseFeedback feedback_;
-    ir2324_group_10::PoseResult result_;
+    assignment1::PoseFeedback feedback_;
+    assignment1::PoseResult result_;
 
 public:
     bool executionDone = false;
@@ -33,7 +33,7 @@ public:
      * @brief Callback function for executing the navigation action.
      * @param goal The goal for the pose action.
      */
-    void executeCB(const ir2324_group_10::PoseGoalConstPtr &goal) { 
+    void executeCB(const assignment1::PoseGoalConstPtr &goal) { 
 
 		feedback_.status = 0;
         as_.publishFeedback(feedback_);
@@ -79,7 +79,7 @@ public:
 			obstacles = findObstacles1(rangeClusters, angle_min, angle_increment);
 			
 			// 2.1) convert the obstacles' vector into a message
-			std::vector<ir2324_group_10::Obstacle> msgObstacles = convertToMsgType(obstacles);
+			std::vector<assignment1::Obstacle> msgObstacles = convertToMsgType(obstacles);
 			
 			// Scan ended
 			feedback_.status = 4;
@@ -94,16 +94,16 @@ public:
 
 
 /**
-     * @brief Convert std::vector<Obstacle> to ir2324_group_10::Obstacle[] (--> message type)
+     * @brief Convert std::vector<Obstacle> to assignment1::Obstacle[] (--> message type)
      * @param obstacles The obstacles to convert.
      * @return Vector of obstacles in message format.
      */
-    std::vector<ir2324_group_10::Obstacle> convertToMsgType(const std::vector<Obstacle>& obstacles) {
-        std::vector<ir2324_group_10::Obstacle> msgObstacles;
+    std::vector<assignment1::Obstacle> convertToMsgType(const std::vector<Obstacle>& obstacles) {
+        std::vector<assignment1::Obstacle> msgObstacles;
 
         for (const Obstacle& obstacle : obstacles) 
         {
-            ir2324_group_10::Obstacle msgObstacle;
+            assignment1::Obstacle msgObstacle;
             msgObstacle.x = obstacle.getX();
             msgObstacle.y = obstacle.getY();
             msgObstacle.radius = obstacle.getRadius();

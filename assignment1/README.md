@@ -19,6 +19,5 @@ world_name:=robotics_library
 	rosrun ir2324_group_10 poseClient
 
 
-Google Drive video: 
-PDF link:
+Google Drive video: https://drive.google.com/drive/folders/1ZDX1ySTXKN7QxGVAr1h5RXjHNFYQaIgr
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ir2324_group_10)
+project(assignment1)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -40,7 +40,7 @@ set(SOURCE_FILES_SERVER
   src/utils.cpp  
   src/scan_methods.cpp
 )
-# List of source files for  poseClient
+# List of source files for poseClient
 set(SOURCE_FILES_CLIENT
   src/poseClient.cpp
   src/utils.cpp  
@@ -49,9 +49,9 @@ set(SOURCE_FILES_CLIENT
 # poseServer executable
 add_executable(poseServer ${SOURCE_FILES_SERVER})
 target_link_libraries(poseServer ${catkin_LIBRARIES})
-add_dependencies(poseServer ${ir2324_group_10_EXPORTED_TARGETS})
+add_dependencies(poseServer ${assignment1_EXPORTED_TARGETS})
 
 # poseClient executable
 add_executable(poseClient ${SOURCE_FILES_CLIENT})
 target_link_libraries(poseClient ${catkin_LIBRARIES})
-add_dependencies(poseClient ${ir2324_group_10_EXPORTED_TARGETS})
+add_dependencies(poseClient ${assignment1_EXPORTED_TARGETS})

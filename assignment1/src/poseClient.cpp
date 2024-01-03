@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <ir2324_group_10/PoseAction.h>
+#include <assignment1/PoseAction.h>
 #include "utils.h"
 
 
@@ -9,7 +9,7 @@
  * @brief Callback function to handle feedback from the PoseAction server.
  * @param feedback The feedback received from the server.
  */
-void feedbackCallback(const ir2324_group_10::PoseFeedbackConstPtr& feedback) {
+void feedbackCallback(const assignment1::PoseFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
     switch (status) {
@@ -36,12 +36,12 @@ void feedbackCallback(const ir2324_group_10::PoseFeedbackConstPtr& feedback) {
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "client_pose");
-    actionlib::SimpleActionClient<ir2324_group_10::PoseAction> ac("pose", true);
+    actionlib::SimpleActionClient<assignment1::PoseAction> ac("pose", true);
     ROS_INFO("Waiting for action server to start.");
     ac.waitForServer(); // will wait for infinite time
     ROS_INFO("Action server started.");
 
-    ir2324_group_10::PoseGoal goal;
+    assignment1::PoseGoal goal;
     double degree_theta_z = 0.00;
 	
 	//user input
