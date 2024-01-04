@@ -43,10 +43,11 @@ int main(int argc, char **argv) {
     
     tiago_iaslab_simulation::Objs srv;
     srv.request.ready = true;
-    srv.request.all_objs = false;
+    srv.request.all_objs = true;
     
     if(client.call(srv)){
-    	for(int i =0; i < 3; i++){
+    	ROS_INFO("Response size = %d", srv.response.ids.size());
+    	for(int i = 0; i < srv.response.ids.size(); i++){
     		ROS_INFO("Object ID: %d", (int)srv.response.ids[i]);
     	}
     }
@@ -56,33 +57,33 @@ int main(int argc, char **argv) {
     
     actionlib::SimpleActionClient<assignment2::PoseAction> ac("poseRevisited", true);
     ROS_INFO("Waiting for action server to start.");
-    ac.waitForServer(); // will wait for infinite time
+    
+    if (!ac.waitForServer(ros::Duration(5.0))) { // Wait for 5 seconds
+        ROS_ERROR("Action server not available");
+        return 1;
+    }
+    
     ROS_INFO("Action server started.");
 
     assignment2::PoseGoal goal;
-    double degree_theta_z = 0.00;
-	
-	//user input
-    ROS_INFO("Enter desired x, y, z, and yaw angle values:");
-    ROS_INFO("X: ");
-    std::cin >> goal.x;     // BEST VALUE TO PICK: goal.x = 11.00;
-    ROS_INFO("Y: ");
-    std::cin >> goal.y;     // BEST VALUE TO PICK: goal.y = 1.00;
-    ROS_INFO("Z: ");
-    std::cin >> goal.z;     // BEST VALUE TO PICK: goal.z = 0.00;
-    ROS_INFO("Yaw angle: ");
-    std::cin >> degree_theta_z; // BEST VALUE TO PICK: goal.theta_z = -90)
-    
-    //conversion to radians
+    float degree_theta_z = 0.00;
+ 
+ //user input
+    goal.x = 8.00;     
+    goal.y = -2.3;     
+    goal.z = 0.00;     
+    degree_theta_z = -90.00; 
     goal.theta_z = degreesToRadians(degree_theta_z);
+    ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, 
+                                             (float)goal.z, (float)goal.theta_z);
     
     //send goal to server
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
     
     //waiting for result from server
     bool finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
-	
-	//print result
+ 
+ //print result
     if (finished_before_timeout) {
         actionlib::SimpleClientGoalState state = ac.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
