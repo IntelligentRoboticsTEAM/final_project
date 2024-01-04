@@ -46,7 +46,6 @@ int main(int argc, char **argv) {
     srv.request.all_objs = true;
     
     if(client.call(srv)){
-    	ROS_INFO("Response size = %d", srv.response.ids.size());
     	for(int i = 0; i < srv.response.ids.size(); i++){
     		ROS_INFO("Object ID: %d", (int)srv.response.ids[i]);
     	}
@@ -58,7 +57,7 @@ int main(int argc, char **argv) {
     actionlib::SimpleActionClient<assignment2::PoseAction> ac("poseRevisited", true);
     ROS_INFO("Waiting for action server to start.");
     
-    if (!ac.waitForServer(ros::Duration(5.0))) { // Wait for 5 seconds
+    if (!ac.waitForServer(ros::Duration(30.0))) { // Wait for 5 seconds
         ROS_ERROR("Action server not available");
         return 1;
     }
@@ -67,15 +66,14 @@ int main(int argc, char **argv) {
 
     assignment2::PoseGoal goal;
     float degree_theta_z = 0.00;
- 
- //user input
+ 	
+ 	//table global position
     goal.x = 8.00;     
-    goal.y = -2.3;     
+    goal.y = 0.5;     
     goal.z = 0.00;     
-    degree_theta_z = -90.00; 
+    degree_theta_z = -0.00; 
     goal.theta_z = degreesToRadians(degree_theta_z);
-    ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, 
-                                             (float)goal.z, (float)goal.theta_z);
+    //ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, (float)goal.z, (float)goal.theta_z);
     
     //send goal to server
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
@@ -83,17 +81,57 @@ int main(int argc, char **argv) {
     //waiting for result from server
     bool finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
  
- //print result
+	//print result
     if (finished_before_timeout) {
         actionlib::SimpleClientGoalState state = ac.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            const auto& result = *ac.getResult();          
+            const auto& result = *ac.getResult();        
         }
     } else {
         ROS_INFO("Action did not finish before the timeout.");
         ac.cancelGoal();
         ROS_INFO("Goal has been cancelled");
+    }
+    
+ 	
+ 	//table global position
+    goal.x = 8.00;     
+    goal.y = -2.0;     
+    goal.z = 0.00;     
+    degree_theta_z = -90.00; 
+    goal.theta_z = degreesToRadians(degree_theta_z);
+    //ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, (float)goal.z, (float)goal.theta_z);
+    
+    //send goal to server
+    ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
+    
+    finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
+ 
+	//print result
+    if (finished_before_timeout) {
+        actionlib::SimpleClientGoalState state = ac.getState();
+        ROS_INFO("Action finished: %s", state.toString().c_str());
+        if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+            const auto& result = *ac.getResult();        
+        }
+    } else {
+        ROS_INFO("Action did not finish before the timeout.");
+        ac.cancelGoal();
+        ROS_INFO("Goal has been cancelled");
+    }
+    
+	//ros::NodeHandle nh;
+    ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
+    
+    assignment2::Detection detection_srv;
+    detection_srv.request.ready = true;
+    
+    if(client.call(srv)){
+    	ROS_INFO("The service returned control to client");
+    }
+    else{
+    	ROS_ERROR("Failed to call service to get object sequence");
     }
 
     return 0;
