@@ -101,11 +101,11 @@ void scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
 {
 	
 	ros::NodeHandle nh;
-  	if (!ros::Time::waitForValid(ros::WallDuration(10.0))) // NOTE: Important when using simulated clock
-  	{
-    	ROS_FATAL("Timed-out waiting for valid time.");
-    	return EXIT_FAILURE;
-  	}
+  if (!ros::Time::waitForValid(ros::WallDuration(10.0))) // NOTE: Important when using simulated clock
+  {
+    ROS_FATAL("Timed-out waiting for valid time.");
+    return EXIT_FAILURE;
+  }
   	
 	//iscriverci ai topic per leggere le immagini
 	ROS_INFO("Waiting for camera intrinsics ... ");
@@ -129,23 +129,28 @@ void scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
   // Set mouse handler for the window
   cv::setMouseCallback(windowName, onMouse);
    	
-  	// Define ROS topic from where TIAGo publishes images
-  	image_transport::ImageTransport it(nh);
-  	// use compressed image transport to use less network bandwidth
-  	image_transport::TransportHints transportHint("compressed");
+  // Define ROS topic from where TIAGo publishes images
+  image_transport::ImageTransport it(nh);
+  // use compressed image transport to use less network bandwidth
+  image_transport::TransportHints transportHint("compressed");
 
-  	ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
-  	image_transport::Subscriber sub = it.subscribe(imageTopic, 1, imageCallback, transportHint);
-  	
-  	ros::spin();
+  ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
+  image_transport::Subscriber sub = it.subscribe(imageTopic, 1, imageCallback, transportHint);
+  
+  ros::spin();
 
-  	cv::destroyWindow(windowName);
+  cv::destroyWindow(windowName);
   	
 	//muovere la testa in modo che punti al tavolo;
 	//catturare l'immagine;
 	//manipolare l'immagine letta;
 	//tornare le posizioni degli oggetti di interesse;
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 int main(int argc, char **argv)
 {

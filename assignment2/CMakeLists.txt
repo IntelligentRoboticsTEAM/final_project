@@ -8,13 +8,27 @@ project(assignment2)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  # Base
   roscpp
-  actionlib_msgs
   std_msgs
   message_generation
-  actionlib
   tiago_iaslab_simulation  
+
+  # For actions
+  actionlib
+  actionlib_msgs
+
+  # for Image Processing Part
+  cv_bridge
+  image_transport
+  sensor_msgs
+  control_msgs
+  geometry_msgs
 )
+
+find_package(OpenCV REQUIRED 
+    COMPONENTS
+    opencv_highgui)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -90,6 +104,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
+  SYSTEM
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -103,6 +118,7 @@ set(SOURCE_FILES_SERVER_REVISITED
 set(SOURCE_FILES_CLIENT_NODE
   src/clientNode.cpp
   src/utils.cpp  
+  src/detectionNode.cpp
 )
 
 # poseServer executable
@@ -112,5 +128,5 @@ add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
 
 # poseClient executable
 add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})
-target_link_libraries(clientNode ${catkin_LIBRARIES})
+target_link_libraries(clientNode ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 add_dependencies(clientNode ${assignment2_EXPORTED_TARGETS})

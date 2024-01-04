@@ -67,14 +67,13 @@ int main(int argc, char **argv) {
     assignment2::PoseGoal goal;
     float degree_theta_z = 0.00;
  	
- 	//table global position
+ 	//Waypoint Goal
     goal.x = 8.00;     
     goal.y = 0.5;     
     goal.z = 0.00;     
     degree_theta_z = -0.00; 
     goal.theta_z = degreesToRadians(degree_theta_z);
     //ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, (float)goal.z, (float)goal.theta_z);
-    
     //send goal to server
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
     
@@ -94,15 +93,13 @@ int main(int argc, char **argv) {
         ROS_INFO("Goal has been cancelled");
     }
     
- 	
- 	//table global position
+ 	//Final Goal
     goal.x = 8.00;     
     goal.y = -2.0;     
     goal.z = 0.00;     
     degree_theta_z = -90.00; 
     goal.theta_z = degreesToRadians(degree_theta_z);
     //ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, (float)goal.z, (float)goal.theta_z);
-    
     //send goal to server
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
     
