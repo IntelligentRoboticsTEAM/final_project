@@ -4,6 +4,7 @@
 #include <assignment2/PoseAction.h>
 #include <tiago_iaslab_simulation/Objs.h>
 #include "utils.h"
+#include "assignment2/Detection.h"
 
 
 /**

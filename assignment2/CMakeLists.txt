@@ -66,14 +66,16 @@ find_package(OpenCV REQUIRED
 ## Generate messages in the 'msg' folder
 add_message_files(
 #   DIRECTORY msg
-   FILES Obstacle.msg
+   FILES Obstacle.msg Object.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
-   DIRECTORY ../../tiago_iaslab_simulation/srv
-   FILES Objs.srv
+   FILES Detection.srv
+   #DIRECTORY ../../tiago_iaslab_simulation/srv
+   #Objs.srv   
 )
+
 
 ## Generate actions in the 'action' folder
 add_action_files(
@@ -94,7 +96,7 @@ generate_messages(
 
 
 catkin_package(
-  CATKIN_DEPENDS message_runtime roscpp actionlib
+  CATKIN_DEPENDS message_runtime roscpp actionlib tiago_iaslab_simulation
 )
 
 ###########
@@ -118,7 +120,6 @@ set(SOURCE_FILES_SERVER_REVISITED
 set(SOURCE_FILES_CLIENT_NODE
   src/clientNode.cpp
   src/utils.cpp  
-  src/detectionNode.cpp
 )
 
 # poseServer executable
@@ -126,7 +127,11 @@ add_executable(poseServerRevisited ${SOURCE_FILES_SERVER_REVISITED})
 target_link_libraries(poseServerRevisited ${catkin_LIBRARIES})
 add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
 
+add_executable(detectionNode src/detectionNode.cpp)
+target_link_libraries(detectionNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
+
 # poseClient executable
 add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})
-target_link_libraries(clientNode ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(clientNode ${catkin_LIBRARIES})
 add_dependencies(clientNode ${assignment2_EXPORTED_TARGETS})

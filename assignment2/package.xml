@@ -25,7 +25,8 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>sensor_msgs</build_depend>
-
+  <build_depend>tiago_iaslab_simulation</build_depend>
+  <build_depend>message_generation</build_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>actionlib</exec_depend>
   <exec_depend>message_runtime</exec_depend>
@@ -34,7 +35,8 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>image_transport</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
-
+  <exec_depend>tiago_iaslab_simulation</exec_depend>
+  <exec_depend>message_generation</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

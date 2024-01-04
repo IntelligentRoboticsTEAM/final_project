@@ -17,6 +17,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+static const std::string windowName      = "Inside of TIAGo's head";
+static const std::string cameraFrame     = "/xtion_rgb_optical_frame";
 static const std::string imageTopic      = "/xtion/rgb/image_raw";
 static const std::string cameraInfoTopic = "/xtion/rgb/camera_info";
 
@@ -97,14 +99,13 @@ void createPointHeadClient(PointHeadClientPtr& actionClient)
     throw std::runtime_error("Error in createPointHeadClient: head controller action server not available");
 }
 
-void scanQR(assignment2::Detection::Request &req, assignment2::Detection::Response &res)
+bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Response &res)
 {
 	
 	ros::NodeHandle nh;
   if (!ros::Time::waitForValid(ros::WallDuration(10.0))) // NOTE: Important when using simulated clock
   {
     ROS_FATAL("Timed-out waiting for valid time.");
-    return EXIT_FAILURE;
   }
   	
 	//iscriverci ai topic per leggere le immagini
@@ -145,6 +146,8 @@ void scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
 	//catturare l'immagine;
 	//manipolare l'immagine letta;
 	//tornare le posizioni degli oggetti di interesse;
+	
+	return true;
 }
 
 
@@ -156,7 +159,7 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "detection_node");
 	ros::NodeHandle n;
-	ros::ServiceServer service = n.advertiseService("/object_detection", scanQR);
+	ros::ServiceServer service = n.advertiseService("/object_detection", &scanQR);
 
 	ros::spin();
 	return 0;
