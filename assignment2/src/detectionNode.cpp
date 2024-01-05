@@ -14,25 +14,32 @@
 #include <control_msgs/PointHeadAction.h>
 #include <sensor_msgs/image_encodings.h>
 #include <ros/topic.h>
+
+// OpenCV headers
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const std::string windowName      = "Inside of TIAGo's head";
 static const std::string cameraFrame     = "/xtion_rgb_optical_frame";
 static const std::string imageTopic      = "/xtion/rgb/image_raw";
 static const std::string cameraInfoTopic = "/xtion/rgb/camera_info";
 
+// Intrinsic parameters of the camera
 cv::Mat cameraIntrinsics;
 
 // Our Action interface type for moving TIAGo's head, provided as a typedef for convenience
-typedef actionlib::SimpleActionClient<control_msgs::PointHeadAction> PointHeadClient;
+typedef actionlib::SimpleActionClient<control_msgs::PointHeadAction> PointHeadClient; //simple action client to interact with tiago's head
 typedef boost::shared_ptr<PointHeadClient> PointHeadClientPtr;
 
-PointHeadClientPtr pointHeadClient;
+PointHeadClientPtr pointHeadClient; //this is a pointer to the client with a very similar name
 
 ros::Time latestImageStamp;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// ROS call back for every new image received
 void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 {
   latestImageStamp = imgMsg->header.stamp;
@@ -44,6 +51,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
   cv::waitKey(15);
 }
 
+// OpenCV callback function for mouse events on a window
 void onMouse( int event, int u, int v, int, void* )
 {
   if ( event != cv::EVENT_LBUTTONDOWN )
@@ -51,9 +59,9 @@ void onMouse( int event, int u, int v, int, void* )
 
   ROS_INFO_STREAM("Pixel selected (" << u << ", " << v << ") Making TIAGo look to that direction");
 
-  geometry_msgs::PointStamped pointStamped;
+  geometry_msgs::PointStamped pointStamped; //define a target point to make tiago point at
 
-  pointStamped.header.frame_id = cameraFrame;
+  pointStamped.header.frame_id = cameraFrame; 
   pointStamped.header.stamp    = latestImageStamp;
 
   //compute normalized coordinates of the selected pixel
@@ -64,7 +72,9 @@ void onMouse( int event, int u, int v, int, void* )
   pointStamped.point.y = y * Z;
   pointStamped.point.z = Z;   
 
-  ROS_INFO("X: %f, Y: %f, Z: %f", (float)pointStamped.point.x, (float)pointStamped.point.y, (float)pointStamped.point.z);
+	
+	ROS_INFO("X: %f, Y: %f, Z: %f", (float)pointStamped.point.x, (float)pointStamped.point.y, (float)pointStamped.point.z);
+	
   //build the action goal
   control_msgs::PointHeadGoal goal;
   //the goal consists in making the Z axis of the cameraFrame to point towards the pointStamped
@@ -75,12 +85,12 @@ void onMouse( int event, int u, int v, int, void* )
   goal.min_duration = ros::Duration(1.0);
   goal.max_velocity = 0.25;
   goal.target = pointStamped;
-  
 
   pointHeadClient->sendGoal(goal);
   ros::Duration(0.5).sleep();
 }
 
+// Create a ROS action client to move TIAGo's head
 void createPointHeadClient(PointHeadClientPtr& actionClient)
 {
   ROS_INFO("Creating action client to head controller ...");
@@ -99,29 +109,38 @@ void createPointHeadClient(PointHeadClientPtr& actionClient)
     throw std::runtime_error("Error in createPointHeadClient: head controller action server not available");
 }
 
-bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Response &res)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Entry point
+int main(int argc, char** argv)
 {
-	
-	ros::NodeHandle nh;
+  // Init the ROS node
+  ros::init(argc, argv, "look_to_point");
+
+  ROS_INFO("Starting look_to_point application ...");
+ 
+  // Precondition: Valid clock
+  ros::NodeHandle nh;
   if (!ros::Time::waitForValid(ros::WallDuration(10.0))) // NOTE: Important when using simulated clock
   {
     ROS_FATAL("Timed-out waiting for valid time.");
+    return EXIT_FAILURE;
   }
-  	
-	//iscriverci ai topic per leggere le immagini
-	ROS_INFO("Waiting for camera intrinsics ... ");
-  	sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(cameraInfoTopic, ros::Duration(10.0));
-  	if(msg.use_count() > 0)
-  	{
-    	cameraIntrinsics = cv::Mat::zeros(3,3,CV_64F);
-    	cameraIntrinsics.at<double>(0, 0) = msg->K[0]; //fx
-    	cameraIntrinsics.at<double>(1, 1) = msg->K[4]; //fy
-    	cameraIntrinsics.at<double>(0, 2) = msg->K[2]; //cx
-    	cameraIntrinsics.at<double>(1, 2) = msg->K[5]; //cy
-    	cameraIntrinsics.at<double>(2, 2) = 1;
-  	}
- 	
- 	// Create a point head action client to move the TIAGo's head
+
+  // Get the camera intrinsic parameters from the appropriate ROS topic
+  ROS_INFO("Waiting for camera intrinsics ... ");
+  sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(cameraInfoTopic, ros::Duration(10.0));
+  if(msg.use_count() > 0)
+  {
+    cameraIntrinsics = cv::Mat::zeros(3,3,CV_64F);
+    cameraIntrinsics.at<double>(0, 0) = msg->K[0]; //fx
+    cameraIntrinsics.at<double>(1, 1) = msg->K[4]; //fy
+    cameraIntrinsics.at<double>(0, 2) = msg->K[2]; //cx
+    cameraIntrinsics.at<double>(1, 2) = msg->K[5]; //cy
+    cameraIntrinsics.at<double>(2, 2) = 1;
+  }
+
+  // Create a point head action client to move the TIAGo's head
   createPointHeadClient( pointHeadClient );
 
   // Create the window to show TIAGo's camera images
@@ -129,7 +148,7 @@ bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
 
   // Set mouse handler for the window
   cv::setMouseCallback(windowName, onMouse);
-   	
+
   // Define ROS topic from where TIAGo publishes images
   image_transport::ImageTransport it(nh);
   // use compressed image transport to use less network bandwidth
@@ -137,30 +156,11 @@ bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
 
   ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
   image_transport::Subscriber sub = it.subscribe(imageTopic, 1, imageCallback, transportHint);
-  
+
+  //enter a loop that processes ROS callbacks. Press CTRL+C to exit the loop
   ros::spin();
 
   cv::destroyWindow(windowName);
-  	
-	//muovere la testa in modo che punti al tavolo;
-	//catturare l'immagine;
-	//manipolare l'immagine letta;
-	//tornare le posizioni degli oggetti di interesse;
-	
-	return true;
-}
 
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-int main(int argc, char **argv)
-{
-	ros::init(argc, argv, "detection_node");
-	ros::NodeHandle n;
-	ros::ServiceServer service = n.advertiseService("/object_detection", &scanQR);
-
-	ros::spin();
-	return 0;
+  return EXIT_SUCCESS;
 }

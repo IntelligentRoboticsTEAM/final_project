@@ -59,7 +59,8 @@ public:
 		}else {
             ROS_INFO("Navigation aborted - Timeout reached");
             result_.arrived = executionDone;
-            as_.setAborted(result_);}
+            as_.setAborted(result_);
+        }
     }
 };
 

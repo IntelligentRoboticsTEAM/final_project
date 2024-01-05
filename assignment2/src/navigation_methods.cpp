@@ -10,7 +10,7 @@
 bool navigateRobotToGoal(const Position& goalPosition) 
 {
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
-    while (!ac.waitForServer(ros::Duration(5.0))) {
+    while (!ac.waitForServer(ros::Duration(20.0))) {
         ROS_INFO("Waiting for the move_base action server to come up");
     }
 

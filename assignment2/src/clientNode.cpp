@@ -46,19 +46,24 @@ int main(int argc, char **argv) {
     srv.request.ready = true;
     srv.request.all_objs = true;
     
+    std::vector<int> object_order;
+    
     if(client.call(srv)){
     	for(int i = 0; i < srv.response.ids.size(); i++){
+    		object_order.push_back(srv.response.ids[i]);
     		ROS_INFO("Object ID: %d", (int)srv.response.ids[i]);
     	}
     }
     else{
     	ROS_ERROR("Failed to call service to get object sequence");
+    	ros::shutdown();
+        return 1;
     }
     
     actionlib::SimpleActionClient<assignment2::PoseAction> ac("poseRevisited", true);
     ROS_INFO("Waiting for action server to start.");
     
-    if (!ac.waitForServer(ros::Duration(30.0))) { // Wait for 5 seconds
+    if (!ac.waitForServer(ros::Duration(5.0))) { // Wait for 5 seconds
         ROS_ERROR("Action server not available");
         return 1;
     }
@@ -69,13 +74,11 @@ int main(int argc, char **argv) {
     float degree_theta_z = 0.00;
  	
  	//Waypoint Goal
-    goal.x = 8.00;     
-    goal.y = 0.5;     
+    goal.x = 8.3;     
+    goal.y = 0.0;     
     goal.z = 0.00;     
-    degree_theta_z = -0.00; 
+    degree_theta_z = 0.00; 
     goal.theta_z = degreesToRadians(degree_theta_z);
-    //ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, (float)goal.z, (float)goal.theta_z);
-    //send goal to server
     ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
     
     //waiting for result from server
@@ -93,16 +96,58 @@ int main(int argc, char **argv) {
         ac.cancelGoal();
         ROS_INFO("Goal has been cancelled");
     }
-    
- 	//Final Goal
-    goal.x = 8.00;     
-    goal.y = -2.0;     
-    goal.z = 0.00;     
-    degree_theta_z = -90.00; 
-    goal.theta_z = degreesToRadians(degree_theta_z);
-    //ROS_INFO("X: %f, Y: %f, Z: %f, Yaw: %f", (float)goal.x, (float)goal.y, (float)goal.z, (float)goal.theta_z);
-    //send goal to server
-    ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
+	
+	
+    switch(object_order[0])
+    {
+    	case 1:
+    		goal.x = 8.15;     
+    		goal.y = -2.1;     
+    		goal.z = 0.00;     
+    		degree_theta_z = -110.00; 
+    		goal.theta_z = degreesToRadians(degree_theta_z);
+    		break;
+    	case 2:
+    		goal.x = 8.30;     
+    		goal.y = -4.2;     
+    		goal.z = 0.00;     
+    		degree_theta_z = 90.00; 
+    		goal.theta_z = degreesToRadians(degree_theta_z);
+    		ac.sendGoal(goal, NULL, NULL, &feedbackCallback); 
+    		finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
+ 
+			//print result
+    		if (finished_before_timeout) {
+       		 actionlib::SimpleClientGoalState state = ac.getState();
+       		 ROS_INFO("Action finished: %s", state.toString().c_str());
+        		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+            		const auto& result = *ac.getResult();        
+        		}
+   			 } else {
+        		ROS_INFO("Action did not finish before the timeout.");
+       			 ac.cancelGoal();
+       			 ROS_INFO("Goal has been cancelled");
+   			 }
+   			 
+    		goal.x = 7.50;     
+    		goal.y = -4.00;     
+    		goal.z = 0.00;     
+    		degree_theta_z = 90.00; 
+    		goal.theta_z = degreesToRadians(degree_theta_z);
+    		break;
+    	case 3:
+    		goal.x = 7.20;     
+    		goal.y = -2.1;     
+    		goal.z = 0.00;     
+    		degree_theta_z = -70.00; 
+    		goal.theta_z = degreesToRadians(degree_theta_z);
+    		break;
+    	default:
+    		ROS_ERROR("Error on selecting object ordering");
+    		break;
+    }
+ 	
+    ac.sendGoal(goal, NULL, NULL, &feedbackCallback); //tiago reaches the first object position in front of table
     
     finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
  
@@ -120,7 +165,7 @@ int main(int argc, char **argv) {
     }
     
 	//ros::NodeHandle nh;
-    ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
+    /*ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
     
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
@@ -131,6 +176,7 @@ int main(int argc, char **argv) {
     else{
     	ROS_ERROR("Failed to call service to get object sequence");
     }
+    */
 
     return 0;
 }
