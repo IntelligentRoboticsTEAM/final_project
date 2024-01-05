@@ -24,6 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   control_msgs
   geometry_msgs
+  tf
+  tf_conversions
 )
 
 find_package(OpenCV REQUIRED 

@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
     }
     
 	//ros::NodeHandle nh;
-    /*ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
+    ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
     
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
@@ -176,8 +176,7 @@ int main(int argc, char **argv) {
     else{
     	ROS_ERROR("Failed to call service to get object sequence");
     }
-    */
-
+    
     return 0;
 }
 
