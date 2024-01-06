@@ -18,8 +18,7 @@ ros::Time latestImageStamp;
 
 // ROS call back for every new image received
 void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
-{
-		
+{		
 	latestImageStamp = imgMsg->header.stamp;
 
 	cv_bridge::CvImagePtr cvImgPtr;
@@ -27,8 +26,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 	
 	cv::imshow("Inside of TIAGo's head", cvImgPtr->image);
 	cv::waitKey(15);
-
-
+}
 bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
 
 	ROS_INFO("Incoming request: %s", req.ready ? "true" : "false");
@@ -130,13 +128,13 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 }
 
-bool scanQR (){
+// bool scanQR (){
 
 
 
 
 
-}
+// }
 
 
 
@@ -169,7 +167,7 @@ int main(int argc, char** argv)
 	//ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
 	image_transport::Subscriber subToImage = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
 	
-	ros::Subscriber subToTags = nh.subscribe("/tag_detections",1 , scanQR);
+	//ros::Subscriber subToTags = nh.subscribe("/tag_detections",1 , scanQR);
 
 	cv::destroyWindow("Inside of TIAGo's head");
 	
