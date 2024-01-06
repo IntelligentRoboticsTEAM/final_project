@@ -166,18 +166,18 @@ int main(int argc, char **argv) {
         ROS_INFO("Goal has been cancelled");
     }
     
-	//ros::NodeHandle nh;
-    ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
+	ros::NodeHandle nh_1;
+    ros::ServiceClient detection_client = nh_1.serviceClient<assignment2::Detection>("/object_detection");
     
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
     
     if(client.call(detection_srv)){
     	ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
-    	ROS_INFO("The service returned control to client");
+    	ROS_INFO("The detection service returned control to client");
     }
     else{
-    	ROS_ERROR("Failed to call service to get object sequence");
+    	ROS_ERROR("Failed to call service to detect object's tag on table");
     }
     
     return 0;
