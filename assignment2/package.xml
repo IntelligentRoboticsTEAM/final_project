@@ -27,6 +27,8 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>tiago_iaslab_simulation</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>roslaunch</build_depend>
+
   <exec_depend>roscpp</exec_depend>
   <exec_depend>actionlib</exec_depend>
   <exec_depend>message_runtime</exec_depend>

@@ -1,0 +1,23 @@
+<launch>
+
+  <!-- Step 1: Start Simulation -->
+  <include file="$(find tiago_iaslab_simulation)/launch/start_simulation.launch">
+    <arg name="world_name" value="ias_lab_room_full_tables"/>
+  </include>
+
+  <!-- Step 2: Launch Apriltag launch file-->
+  <include file="$(find tiago_iaslab_simulation)/launch/apriltag.launch" />
+
+  <!-- Step 3: Launch Navigation launch file -->
+  <include file="$(find tiago_iaslab_simulation)/launch/navigation.launch" />
+
+  <!-- Step 4: Run Human Node -->
+  <node pkg="tiago_iaslab_simulation" type="human_node" name="human_node" output="screen" />
+
+  <!-- Step 5: Run poseServerRevisited Node -->
+  <node pkg="assignment2" type="poseServerRevisited" name="pose_server" output="screen" />
+  
+  <!-- Step 6: Run detectioNode -->
+  <node pkg="assignment2" type="detectionNode" name="detectionNode" output="screen" />
+
+</launch>

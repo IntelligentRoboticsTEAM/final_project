@@ -12,7 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   message_generation
-  tiago_iaslab_simulation  
+  tiago_iaslab_simulation
+  roslaunch
 
   # For actions
   actionlib
@@ -28,9 +29,10 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 
-find_package(OpenCV REQUIRED 
-    COMPONENTS
+find_package(OpenCV REQUIRED COMPONENTS
     opencv_highgui)
+
+roslaunch_add_file_check(launch)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -124,16 +126,17 @@ set(SOURCE_FILES_CLIENT_NODE
   src/utils.cpp  
 )
 
-# poseServer executable
+# poseServerRevisited executable
 add_executable(poseServerRevisited ${SOURCE_FILES_SERVER_REVISITED})
 target_link_libraries(poseServerRevisited ${catkin_LIBRARIES})
 add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
 
+#detectionNode executable
 add_executable(detectionNode src/detectionNode.cpp)
 target_link_libraries(detectionNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
 
-# poseClient executable
+# clientNode executable
 add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})
 target_link_libraries(clientNode ${catkin_LIBRARIES})
 add_dependencies(clientNode ${assignment2_EXPORTED_TARGETS})
