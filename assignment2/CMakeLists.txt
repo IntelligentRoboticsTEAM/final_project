@@ -132,7 +132,7 @@ target_link_libraries(poseServerRevisited ${catkin_LIBRARIES})
 add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
 
 #detectionNode executable
-add_executable(detectionNode src/detectionNode.cpp)
+add_executable(detectionNode src/detectionNode.cpp src/utils.cpp)
 target_link_libraries(detectionNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
 
