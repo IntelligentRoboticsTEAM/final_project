@@ -1,6 +1,4 @@
-#include "assignment2/Detection.h"
-#include "assignment2/Object.h"
-#include "Object.h"
+#include "utils.h"
 #include <exception>
 #include <string>
 #include <boost/shared_ptr.hpp>
@@ -29,30 +27,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 	
 	cv::imshow("Inside of TIAGo's head", cvImgPtr->image);
 	cv::waitKey(15);
-}
 
-std::vector<assignment2::Object> convertToMsgType(const std::vector<Object>& objects) {
-    
-    std::vector<assignment2::Object> msgObjects;
 
-    for (const Object& object : objects) 
-    {
-        assignment2::Object msgObject;
-        msgObject.x = object.getX();
-        msgObject.y = object.getY();
-        msgObject.z = object.getZ();
-		msgObject.theta = object.getTheta();
-		msgObject.dim = object.getDimension();
+bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
 
-        msgObjects.push_back(msgObject);
-    }
-
-    return msgObjects;
-}
-
-bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
-
-	ROS_INFO("Incoming request: %B", req.ready);
+	ROS_INFO("Incoming request: %s", req.ready ? "true" : "false");
 	
 	//simple action client to interact with tiago's head
 	actionlib::SimpleActionClient<control_msgs::PointHeadAction> pointHeadClient("/head_controller/point_head_action", true); 
@@ -150,6 +129,17 @@ bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
 	return true;
 	
 }
+
+bool scanQR (){
+
+
+
+
+
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Entry point
@@ -166,7 +156,7 @@ int main(int argc, char** argv)
   	
 	ROS_INFO("Starting QR pose detection application ...");
 	
-	ros::ServiceServer service = n.advertiseService("/object_detection", scanQR);
+	ros::ServiceServer service = n.advertiseService("/object_detection", lookToPoint);
 
 	// Create the window to show TIAGo's camera images
 	cv::namedWindow("Inside of TIAGo's head", cv::WINDOW_AUTOSIZE);
@@ -177,8 +167,10 @@ int main(int argc, char** argv)
 	image_transport::TransportHints transportHint("compressed");
 
 	//ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
-	image_transport::Subscriber sub = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
+	image_transport::Subscriber subToImage = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
 	
+	ros::Subscriber subToTags = nh.subscribe("/tag_detections",1 , scanQR);
+
 	cv::destroyWindow("Inside of TIAGo's head");
 	
 	ros::spin();

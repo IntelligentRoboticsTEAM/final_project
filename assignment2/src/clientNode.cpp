@@ -4,9 +4,7 @@
 #include <assignment2/PoseAction.h>
 #include <tiago_iaslab_simulation/Objs.h>
 #include "utils.h"
-#include "assignment2/Detection.h"
-#include "assignment2/Object.h"
-#include "Object.h"
+
 
 /**
  * @brief Callback function to handle feedback from the PoseAction server.
@@ -60,6 +58,8 @@ int main(int argc, char **argv) {
     	ros::shutdown();
         return 1;
     }
+
+    //////// ------ ////////
     
     actionlib::SimpleActionClient<assignment2::PoseAction> ac("poseRevisited", true);
     ROS_INFO("Waiting for action server to start.");
@@ -165,16 +165,22 @@ int main(int argc, char **argv) {
         ac.cancelGoal();
         ROS_INFO("Goal has been cancelled");
     }
-    
-	ros::NodeHandle nh_1;
-    ros::ServiceClient detection_client = nh_1.serviceClient<assignment2::Detection>("/object_detection");
+
+    //////// ------ ////////
+
+	//ros::NodeHandle nh_1;
+    ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
     
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
     
-    if(client.call(detection_srv)){
+    if(detection_client.call(detection_srv)){
     	ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
     	ROS_INFO("The detection service returned control to client");
+        
+        //riconversione a object
+        //std::vector<Object> objects = convertToObjectType(detection_srv.response.objects_pose);
+        // manipulationNode()
     }
     else{
     	ROS_ERROR("Failed to call service to detect object's tag on table");
