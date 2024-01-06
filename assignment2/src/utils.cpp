@@ -35,7 +35,7 @@ std::vector<Object> convertToObjectType(const std::vector<assignment2::Object>& 
 
     for (int i=0; i < msgObjects.size(); i++) 
     {
-        Object obj(msgObjects[i].x, msgObjects[i].y ,msgObjects[i].z ,objects[i].theta, msgObjects[i].dim);
+        Object obj(msgObjects[i].x, msgObjects[i].y ,msgObjects[i].z , msgObjects[i].theta, msgObjects[i].dim);
         objects.push_back(obj);
     }
     
