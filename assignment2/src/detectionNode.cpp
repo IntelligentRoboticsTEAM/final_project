@@ -1,4 +1,6 @@
 #include "assignment2/Detection.h"
+#include "assignment2/Object.h"
+#include "Object.h"
 #include <exception>
 #include <string>
 #include <boost/shared_ptr.hpp>
@@ -29,7 +31,28 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 	cv::waitKey(15);
 }
 
+std::vector<assignment2::Object> convertToMsgType(const std::vector<Object>& objects) {
+    
+    std::vector<assignment2::Object> msgObjects;
+
+    for (const Object& object : objects) 
+    {
+        assignment2::Object msgObject;
+        msgObject.x = object.getX();
+        msgObject.y = object.getY();
+        msgObject.z = object.getZ();
+		msgObject.theta = object.getTheta();
+		msgObject.dim = object.getDimension();
+
+        msgObjects.push_back(msgObject);
+    }
+
+    return msgObjects;
+}
+
 bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
+
+	ROS_INFO("Incoming request: %B", req.ready);
 	
 	//simple action client to interact with tiago's head
 	actionlib::SimpleActionClient<control_msgs::PointHeadAction> pointHeadClient("/head_controller/point_head_action", true); 
@@ -62,12 +85,13 @@ bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
 	//define a target point to make tiago point at
 	geometry_msgs::PointStamped pointStamped; 
 	
-	pointStamped.header.frame_id = "base_link"; 
+	pointStamped.header.frame_id = "/xtion_rgb_optical_frame"; 
 	pointStamped.header.stamp    = latestImageStamp;
-	pointStamped.point.x = 8.00;
-	pointStamped.point.y = 3.00;
-	pointStamped.point.z = 0.50;  
+	pointStamped.point.x = 0.11;
+	pointStamped.point.y = 0.38;
+	pointStamped.point.z = 1.00;  
 	
+	/*
 	tf::TransformListener tfListener;
 	try
     {
@@ -79,8 +103,9 @@ bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
         ROS_ERROR("Failed to transform table point to /xtion_rgb_optical_frame: %s", ex.what());
         return 1;
     } 
+    */
 
-	//ROS_INFO("X: %f, Y: %f, Z: %f", (float)pointStamped.point.x, (float)pointStamped.point.y, (float)pointStamped.point.z);
+	ROS_INFO("X: %f, Y: %f, Z: %f", (float)pointStamped.point.x, (float)pointStamped.point.y, (float)pointStamped.point.z);
 
 	//the goal consists in making the Z axis of the cameraFrame to point towards the pointStamped
 	control_msgs::PointHeadGoal goal;
@@ -110,6 +135,18 @@ bool scanQR(assignment2::Detection::Request &req, assignment2::Detection::Respon
         ROS_INFO("Pointing goal has been cancelled");
     }
 	
+	std::vector<Object> objects;
+	
+	Object o_1(1,1,1,90,0.5);
+	Object o_2(2,2,2,180,0.7);
+	
+	objects.push_back(o_1);
+	objects.push_back(o_2);
+	
+	std::vector<assignment2::Object> msgObjects = convertToMsgType(objects);
+	
+	res.objects_pose = msgObjects;
+
 	return true;
 	
 }

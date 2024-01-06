@@ -5,7 +5,8 @@
 #include <tiago_iaslab_simulation/Objs.h>
 #include "utils.h"
 #include "assignment2/Detection.h"
-
+#include "assignment2/Object.h"
+#include "Object.h"
 
 /**
  * @brief Callback function to handle feedback from the PoseAction server.
@@ -97,8 +98,8 @@ int main(int argc, char **argv) {
         ROS_INFO("Goal has been cancelled");
     }
 	
-	
-    switch(object_order[0])
+	//object_order[0]
+    switch(1)
     {
     	case 1:
     		goal.x = 8.15;     
@@ -147,7 +148,8 @@ int main(int argc, char **argv) {
     		break;
     }
  	
-    ac.sendGoal(goal, NULL, NULL, &feedbackCallback); //tiago reaches the first object position in front of table
+ 	//tiago reaches the first object position in front of table
+    ac.sendGoal(goal, NULL, NULL, &feedbackCallback); 
     
     finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
  
@@ -170,7 +172,8 @@ int main(int argc, char **argv) {
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
     
-    if(client.call(srv)){
+    if(client.call(detection_srv)){
+    	ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
     	ROS_INFO("The service returned control to client");
     }
     else{
