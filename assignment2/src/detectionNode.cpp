@@ -7,6 +7,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <tf/transform_listener.h>
 #include <control_msgs/PointHeadAction.h>
 #include <sensor_msgs/image_encodings.h>
@@ -116,14 +117,41 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 	apriltag_ros::AprilTagDetectionArray::ConstPtr apriltag_msg = ros::topic::waitForMessage<apriltag_ros::AprilTagDetectionArray>("/tag_detections", ros::Duration(10.0));
 	
-	//check ID
-	//if(apriltag_msg.id[0] == )
+	//check if Requested_ID is inside of the array of the returned tags
+	//std::vector<int> ids = apriltag_msg.detections[0].id;
+	/// auto it = std::find(ids.begin(), ids.end(), requested_id);
+	// ROS_INFO("Number of detections: %d" , (int)apriltag_msg->detections.size());
+	// ROS_INFO("Number of detections[0]: %d" , (int)apriltag_msg->detections[0].size());
+	// ROS_INFO("Number of detections[0].id: %d" , (int)apriltag_msg->detections[0].id.size());
 	
-	
-	ROS_INFO("Number of detected tag: %d" , (int)apriltag_msg->detections.size());
-	
-	ROS_INFO("First detected tag is: %d", (int)apriltag_msg->detections[0].id[0]);
-	ROS_INFO("First detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
+	geometry_msgs::PoseWithCovarianceStamped poseCovarianceStamped;
+	geometry_msgs::PoseWithCovariance poseCovariance;
+	geometry_msgs::Pose pose;	// contains Point and Quaternion
+	geometry_msgs::Point position;	 // float x, y, z
+	geometry_msgs:::Quaternion orientation; // float x, y, z, w
+
+	for(int i = 0; i < apriltag_msg.detections.size() ; i++ ){
+		if (apriltag_msg.detections[i].id[0] == req.requested_id){
+			ROS_INFO("requested_id exists in the vector at indexx %d", i);
+			ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
+			
+			ROS_INFO("Position\tx:%f\ty:%f\tz:%f", position.x, position.y, position.z);
+			ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", orientation.x, orientation.y, orientation.z, orientation.w);
+		} 
+	}
+
+
+	// if (it != ids.end()) {
+    //     ROS_INFO("requested_id exists in the vector.");
+	// 	int index = std::distance(ids.begin(), it);	// index of found ID in the vector
+
+	// 	// ROS_INFO("First detected tag is: %d", (int)apriltag_msg->detections[0].id[0]);
+	// 	ROS_INFO("First detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
+		
+    // } else {
+    //     ROS_ERROR("requested_id does not exist in the vector.");
+    // }
+
 	
 	std::vector<Object> objects;
 	

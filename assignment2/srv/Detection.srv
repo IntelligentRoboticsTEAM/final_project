@@ -2,3 +2,4 @@ bool ready
 int32 requested_id
 ---
 assignment2/Object[] objects_pose
+geometry_msgs/Pose[] poses
