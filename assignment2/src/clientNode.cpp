@@ -2,7 +2,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <assignment2/PoseAction.h>
-#inlcude <assignment2/ArmAction.h>
+//#inlcude <assignment2/ArmAction.h>
 #include <tiago_iaslab_simulation/Objs.h>
 #include "utils.h"
 
@@ -175,26 +175,26 @@ int main(int argc, char **argv) {
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order[0];
 
-    std::vector<std::pair<geometry_msgs::Pose, int> pairsOfPoses;
+    std::vector<std::pair<geometry_msgs::Pose, int>> pairsOfPoses;
     
     if(detection_client.call(detection_srv)){
         for(int i = 0; i < detection_srv.response.poses.size(); i++)
         {
             geometry_msgs::Pose currentPose = detection_srv.response.poses[i];
-            std::vector<int> ids = detection_srv.response.poses_ids[i];
-            std::vecto<float> sizes = detection_srv.response.poses_sizes[i];
+            int ids = detection_srv.response.poses_ids[i];
+            float sizes = detection_srv.response.poses_sizes[i];
 
-        	ROS_INFO("POSITION %d for ID %d", i, ids[i]);
+        	ROS_INFO("POSITION %d for ID %d", i, ids);
         	ROS_INFO("X: %f", currentPose.position.x);
         	ROS_INFO("Y: %f", currentPose.position.y);
         	ROS_INFO("Z: %f", currentPose.position.z);
-            ROS_INFO("ORIENTATION %d for ID %d", i, sizes[i]);
+            ROS_INFO("ORIENTATION %d for ID %d", i, ids);
             ROS_INFO("X: %f", currentPose.orientation.x);
         	ROS_INFO("Y: %f", currentPose.orientation.y);
         	ROS_INFO("Z: %f", currentPose.orientation.z);
             ROS_INFO("W: %f", currentPose.orientation.w);
 
-            std::pair<geometry_msgs::Pose, int> poseIdPair(currentPose, ids[i]);
+            std::pair<geometry_msgs::Pose, int> poseIdPair(currentPose, ids);
             pairsOfPoses.push_back(poseIdPair);
         }
     }
