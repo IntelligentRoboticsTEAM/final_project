@@ -1,3 +1,4 @@
 bool ready
+int32 requested_id
 ---
 assignment2/Object[] objects_pose
