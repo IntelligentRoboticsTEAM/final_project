@@ -131,14 +131,19 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	geometry_msgs::Quaternion orientation; // float x, y, z, w
 
 	for(int i = 0; i < apriltag_msg->detections.size() ; i++ ){
-		if (apriltag_msg->detections[i].id[0] == req.requested_id){
+		if (apriltag_msg.detections[i].id[0] == req.requested_id){
 			ROS_INFO("requested_id exists in the vector at indexx %d", i);
 			ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
 			
-			ROS_INFO("Position\tx:%f\ty:%f\tz:%f", position.x, position.y, position.z);
-			ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", orientation.x, orientation.y, orientation.z, orientation.w);
+			poseCovarianceStamped = apriltag_msg->detections[i].pose;
+			poseCovariance = poseCovarianceStamped.pose;
+			pose = poseCovariance.pose;
+
+			ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z);
+			ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 		} 
 	}
+
 
 
 	// if (it != ids.end()) {
