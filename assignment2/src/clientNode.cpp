@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
     		goal.x = 7.20;     
     		goal.y = -2.1;     
     		goal.z = 0.00;     
-    		degree_theta_z = -70.00; 
+    		degree_theta_z = -50.00; 
     		goal.theta_z = degreesToRadians(degree_theta_z);
     		break;
     	default:
