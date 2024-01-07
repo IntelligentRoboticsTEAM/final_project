@@ -168,11 +168,11 @@ int main(int argc, char **argv) {
 
     //////// ------ ////////
 
-	//ros::NodeHandle nh_1;
     ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
     
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
+    detection_srv.request.requested_id = object_order[0];
     
     if(detection_client.call(detection_srv)){
     	//ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
