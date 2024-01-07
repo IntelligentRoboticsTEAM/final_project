@@ -13,6 +13,7 @@
 #include <ros/topic.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
+#include <apriltag_ros/AprilTagDetectionArray.h>
 
 ros::Time latestImageStamp;
 
@@ -27,6 +28,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 	cv::imshow("Inside of TIAGo's head", cvImgPtr->image);
 	cv::waitKey(15);
 }
+
 bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
 
 	ROS_INFO("Incoming request: %s", req.ready ? "true" : "false");
@@ -47,7 +49,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	//Get camera info from correct topic
 	sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/xtion/rgb/camera_info", ros::Duration(10.0));
 	
-	//define a cv::Mat to store the image
+	//define a cv::Mat to store the camera parameters
 	cv::Mat cameraIntrinsics;
  	if(msg.use_count() > 0)
 	{
@@ -64,8 +66,8 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 	pointStamped.header.frame_id = "/xtion_rgb_optical_frame"; 
 	pointStamped.header.stamp    = latestImageStamp;
-	pointStamped.point.x = 0.11;
-	pointStamped.point.y = 0.38;
+	pointStamped.point.x = 0.00;
+	pointStamped.point.y = 0.80;
 	pointStamped.point.z = 1.00;  
 	
 	/*
@@ -112,9 +114,20 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
         ROS_INFO("Pointing goal has been cancelled");
     }
 	
+	apriltag_ros::AprilTagDetectionArray::ConstPtr apriltag_msg = ros::topic::waitForMessage<apriltag_ros::AprilTagDetectionArray>("/tag_detections", ros::Duration(10.0));
+	
+	//check ID
+	//if(apriltag_msg.id[0] == )
+	
+	
+	ROS_INFO("Number of detected tag: %d" , (int)apriltag_msg->detections.size());
+	
+	ROS_INFO("First detected tag is: %d", (int)apriltag_msg->detections[0].id[0]);
+	ROS_INFO("First detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
+	
 	std::vector<Object> objects;
 	
-	Object o_1(1,1,1,90,0.5);
+	Object o_1(1,1,1,90, 0.5);
 	Object o_2(2,2,2,180,0.7);
 	
 	objects.push_back(o_1);
@@ -128,17 +141,6 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 }
 
-// bool scanQR (){
-
-
-
-
-
-// }
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Entry point
 int main(int argc, char** argv)
@@ -166,8 +168,6 @@ int main(int argc, char** argv)
 
 	//ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
 	image_transport::Subscriber subToImage = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
-	
-	//ros::Subscriber subToTags = nh.subscribe("/tag_detections",1 , scanQR);
 
 	cv::destroyWindow("Inside of TIAGo's head");
 	

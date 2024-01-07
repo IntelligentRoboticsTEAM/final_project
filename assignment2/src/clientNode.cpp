@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     float degree_theta_z = 0.00;
  	
  	//Waypoint Goal
-    goal.x = 8.3;     
+    goal.x = 8.4;     
     goal.y = 0.0;     
     goal.z = 0.00;     
     degree_theta_z = 0.00; 
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     }
 	
 	//object_order[0]
-    switch(1)
+    switch(object_order[0])
     {
     	case 1:
     		goal.x = 8.15;     
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     		goal.theta_z = degreesToRadians(degree_theta_z);
     		break;
     	case 2:
-    		goal.x = 8.30;     
+    		goal.x = 8.40;     
     		goal.y = -4.2;     
     		goal.z = 0.00;     
     		degree_theta_z = 90.00; 
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     		goal.x = 7.50;     
     		goal.y = -4.00;     
     		goal.z = 0.00;     
-    		degree_theta_z = 90.00; 
+    		degree_theta_z = 70.00; 
     		goal.theta_z = degreesToRadians(degree_theta_z);
     		break;
     	case 3:
@@ -175,12 +175,17 @@ int main(int argc, char **argv) {
     detection_srv.request.ready = true;
     
     if(detection_client.call(detection_srv)){
-    	ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
-    	ROS_INFO("The detection service returned control to client");
-        
-        //riconversione a object
-        //std::vector<Object> objects = convertToObjectType(detection_srv.response.objects_pose);
-        // manipulationNode()
+    	//ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
+    	//ROS_INFO("The detection service returned control to client");
+        std::vector<Object> objects = convertToObjectType(detection_srv.response.objects_pose);
+        for(int i = 0; i < objects.size(); i++){
+        	ROS_INFO("Pose of object with tag number %d is:", i);
+        	ROS_INFO("X: %f", objects[i].getX());
+        	ROS_INFO("Y: %f", objects[i].getY());
+        	ROS_INFO("Z: %f", objects[i].getZ());
+        	ROS_INFO("Theta: %f", objects[i].getTheta());
+        	ROS_INFO("Object dimension: %f", objects[i].getDimension());
+        }
     }
     else{
     	ROS_ERROR("Failed to call service to detect object's tag on table");
