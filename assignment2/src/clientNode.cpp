@@ -2,6 +2,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <assignment2/PoseAction.h>
+#inlcude <assignment2/ArmAction.h>
 #include <tiago_iaslab_simulation/Objs.h>
 #include "utils.h"
 
@@ -173,23 +174,38 @@ int main(int argc, char **argv) {
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order[0];
+
+    std::vector<std::pair<geometry_msgs::Pose, int> pairsOfPoses;
     
     if(detection_client.call(detection_srv)){
-    	//ROS_INFO("Received result size: %d", (int)detection_srv.response.objects_pose.size());
-    	//ROS_INFO("The detection service returned control to client");
-        std::vector<Object> objects = convertToObjectType(detection_srv.response.objects_pose);
-        for(int i = 0; i < objects.size(); i++){
-        	ROS_INFO("Pose of object with tag number %d is:", i);
-        	ROS_INFO("X: %f", objects[i].getX());
-        	ROS_INFO("Y: %f", objects[i].getY());
-        	ROS_INFO("Z: %f", objects[i].getZ());
-        	ROS_INFO("Theta: %f", objects[i].getTheta());
-        	ROS_INFO("Object dimension: %f", objects[i].getDimension());
+        for(int i = 0; i < detection_srv.response.poses.size(); i++)
+        {
+            geometry_msgs::Pose currentPose = detection_srv.response.poses[i];
+            std::vector<int> ids = detection_srv.response.poses_ids[i];
+            std::vecto<float> sizes = detection_srv.response.poses_sizes[i];
+
+        	ROS_INFO("POSITION %d for ID %d", i, ids[i]);
+        	ROS_INFO("X: %f", currentPose.position.x);
+        	ROS_INFO("Y: %f", currentPose.position.y);
+        	ROS_INFO("Z: %f", currentPose.position.z);
+            ROS_INFO("ORIENTATION %d for ID %d", i, sizes[i]);
+            ROS_INFO("X: %f", currentPose.orientation.x);
+        	ROS_INFO("Y: %f", currentPose.orientation.y);
+        	ROS_INFO("Z: %f", currentPose.orientation.z);
+            ROS_INFO("W: %f", currentPose.orientation.w);
+
+            std::pair<geometry_msgs::Pose, int> poseIdPair(currentPose, ids[i]);
+            pairsOfPoses.push_back(poseIdPair);
         }
     }
     else{
     	ROS_ERROR("Failed to call service to detect object's tag on table");
     }
+
+
+    // ros::ServiceClient manipulationClient = nh.serviceClient<assignment2::Arm>("/manipulate_object");
+
+    
     
     return 0;
 }

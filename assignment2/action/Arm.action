@@ -1,0 +1,19 @@
+## If request == 1 --> pickObject
+## If request == 2 --> placeObject
+int32 request
+
+## Output from Detection Node
+geometry_msgs/Pose[] poses
+int32[] poses_ids
+float32[] poses_sizes
+
+---
+int32[] status
+# 1: hand is open
+# 2: hand is closed
+# 3: arm is high
+# 4: arm is low
+
+---
+bool objectPicked
+bool objectPlaced

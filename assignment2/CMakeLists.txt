@@ -75,7 +75,8 @@ add_message_files(
 
 ## Generate services in the 'srv' folder
 add_service_files(
-   FILES Detection.srv
+   FILES 
+   Detection.srv
    #DIRECTORY ../../tiago_iaslab_simulation/srv
    #Objs.srv   
 )
@@ -84,7 +85,7 @@ add_service_files(
 ## Generate actions in the 'action' folder
 add_action_files(
 #  DIRECTORY action
-  FILES Pose.action
+  FILES Pose.action Arm.action
 )
 
 ## Generate added messages and services with any dependencies listed here

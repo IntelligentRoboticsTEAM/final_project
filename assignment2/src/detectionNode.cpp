@@ -130,48 +130,27 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	geometry_msgs::Point position;	 // float x, y, z
 	geometry_msgs::Quaternion orientation; // float x, y, z, w
 
-	for(int i = 0; i < apriltag_msg->detections.size() ; i++ ){
-		if (apriltag_msg->detections[i].id[0] == req.requested_id){
+	for(int i = 0; i < apriltag_msg->detections.size() ; i++ )
+	{
+		if (apriltag_msg->detections[i].id[0] == req.requested_id)
+		{
 			ROS_INFO("requested_id exists in the vector at indexx %d", i);
 			ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
-			
-			poseCovarianceStamped = apriltag_msg->detections[i].pose;
-			poseCovariance = poseCovarianceStamped.pose;
-			pose = poseCovariance.pose;
-
-			ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z);
-			ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 		} 
+
+		poseCovarianceStamped = apriltag_msg->detections[i].pose;
+		poseCovariance = poseCovarianceStamped.pose;
+		pose = poseCovariance.pose;
+
+		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z);
+		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+
+		res.poses.push_back(pose);
+		res.poses_ids.push_back(apriltag_msg->detections[i].id[0]);
+		res.poses_sizes.push_back(apriltag_msg->detections[i].size[0]);
 	}
-
-
-
-	// if (it != ids.end()) {
-    //     ROS_INFO("requested_id exists in the vector.");
-	// 	int index = std::distance(ids.begin(), it);	// index of found ID in the vector
-
-	// 	// ROS_INFO("First detected tag is: %d", (int)apriltag_msg->detections[0].id[0]);
-	// 	ROS_INFO("First detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
-		
-    // } else {
-    //     ROS_ERROR("requested_id does not exist in the vector.");
-    // }
-
 	
-	std::vector<Object> objects;
-	
-	Object o_1(1,1,1,90, 0.5);
-	Object o_2(2,2,2,180,0.7);
-	
-	objects.push_back(o_1);
-	objects.push_back(o_2);
-	
-	std::vector<assignment2::Object> msgObjects = convertToMsgType(objects);
-	
-	res.objects_pose = msgObjects;
-
 	return true;
-	
 }
 
 
