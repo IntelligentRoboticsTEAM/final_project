@@ -26,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
   control_msgs
   geometry_msgs
   apriltag_ros
+  moveit_ros_planning_interface
   tf
   tf_conversions
 )

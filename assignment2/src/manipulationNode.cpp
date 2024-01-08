@@ -10,6 +10,7 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
+#include <geometry_msgs/Pose.h>
 
 // Our headers
 #include <assignment2/ArmAction.h>
@@ -40,7 +41,7 @@ public:
     
     ~ArmAction(void){}
 
-    bool pickObject(geometry_msgs::Pose pose, ros::AsyncSpinner& spinner){
+    bool pickObject(geometry_msgs::Pose pose){
 
     // Creating PoseStamped  
         geometry_msgs::PoseStamped goalPose;
@@ -78,7 +79,7 @@ public:
         ros::Time start = ros::Time::now();
 
     // Execute the Movement
-        moveit::planning_interface::MoveItErrorCode e = group_arm_torso.move();
+        moveit::core::MoveItErrorCode e = group_arm_torso.move();
         if (!bool(e))
             throw std::runtime_error("Error executing plan");
         else
@@ -87,7 +88,7 @@ public:
 
         ROS_INFO_STREAM("Motion duration: " << (ros::Time::now() - start).toSec());
 
-        spinner.stop();
+        //spinner.stop();
 
         return true;
 
@@ -98,10 +99,10 @@ public:
         // as_.publishFeedback(feedback_);
     }
 
-    bool placeObject(geometry_msgs::Pose goalPose, ros::AsyncSpinner& spinner){
+    bool placeObject(geometry_msgs::Pose goalPose){
 
 
-        spinner.stop();
+        //spinner.stop();
         return true;
     }
 
@@ -115,7 +116,10 @@ public:
 		bool objectPicked = false;
 		bool objectPlaced = false;	
 
-        geometry_msgs::Pose goalPose = goal.detections.pose.pose.pose;
+        std::vector<apriltag_ros::AprilTagDetection> detections = goal->detections;
+        geometry_msgs::PoseWithCovarianceStamped p1 = detections[0].pose;
+        geometry_msgs::PoseWithCovariance p2 = p1.pose;
+        geometry_msgs::Pose goalPose = p2.pose;
 		
         switch(goal->request){
             case 1:
@@ -153,8 +157,9 @@ int main(int argc, char** argv)
     ArmAction server("manipulationNode");
     ROS_INFO("Manipulation Server is running...");
     
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+    //ros::AsyncSpinner spinner(1);
+    //spinner.start();
+    
     ros::spin(); 
 
 

@@ -28,6 +28,8 @@
   <build_depend>tiago_iaslab_simulation</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>roslaunch</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>actionlib</exec_depend>
@@ -39,6 +41,8 @@
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>tiago_iaslab_simulation</exec_depend>
   <exec_depend>message_generation</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
+  
 
 
   <!-- The export tag contains other, unspecified, tags -->
