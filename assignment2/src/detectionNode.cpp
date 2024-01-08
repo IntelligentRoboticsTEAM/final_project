@@ -126,8 +126,8 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 	geometry_msgs::PoseWithCovarianceStamped poseCovarianceStamped;
 	geometry_msgs::PoseWithCovariance poseCovariance;
-	geometry_msgs::Pose pose;	// contains Point and Quaternion
-	geometry_msgs::Point position;	 // float x, y, z
+	geometry_msgs::Pose pose;		// contains Point and Quaternion
+	geometry_msgs::Point position;	// float x, y, z
 	geometry_msgs::Quaternion orientation; // float x, y, z, w
 
 	for(int i = 0; i < apriltag_msg->detections.size() ; i++ )
@@ -138,16 +138,12 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 			ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
 		} 
 
-		// poseCovarianceStamped = apriltag_msg->detections[i].pose;
-		// poseCovariance = poseCovarianceStamped.pose;
-		// pose = poseCovariance.pose;
+		poseCovarianceStamped = apriltag_msg->detections[i].pose;
+		poseCovariance = poseCovarianceStamped.pose;
+		pose = poseCovariance.pose;
 
-		// ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z);
-		// ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
-
-		// res.poses.push_back(pose);
-		// res.poses_ids.push_back(apriltag_msg->detections[i].id[0]);
-		// res.poses_sizes.push_back(apriltag_msg->detections[i].size[0]);
+		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z);
+		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 
 		res.detections = apriltag_msg->detections;
 	}

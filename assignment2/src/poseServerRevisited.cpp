@@ -3,7 +3,6 @@
 #include <assignment2/PoseAction.h>
 #include <sensor_msgs/LaserScan.h>
 #include <ros/topic.h>
-
 #include "navigation_methods.h"
 
 /**

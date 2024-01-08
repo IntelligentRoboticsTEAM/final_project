@@ -41,3 +41,34 @@ bool navigateRobotToGoal(const Position& goalPosition)
 }
 
 
+Position decidePosition(int id){
+
+}
+
+Position setWaypoint(int sequence){
+
+    Position pose;
+
+    switch(sequence){
+        case 1:
+
+            break;
+
+
+        case 2:
+
+            break;
+
+        case 3:
+
+            break;
+
+        default:
+
+
+            break;
+    }
+
+    return pose;
+}
+

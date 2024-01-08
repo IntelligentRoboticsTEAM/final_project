@@ -1,17 +1,17 @@
 ## GOAL
-## If request == 1 --> pickObject
-## If request == 2 --> placeObject
+
+# request == 1 -> pickObject
+# request == 2 -> placeObject
 int32 request
-## Output from Detection.srv
+
+# Output from Detection.srv
 apriltag_ros/AprilTagDetection[] detections
 ---
 ## RESULT
+
 bool objectPicked
 bool objectPlaced
 ---
 ## FEEDBACK
-# 1: hand is open
-# 2: hand is closed
-# 3: arm is high
-# 4: arm is low
+
 int32 status

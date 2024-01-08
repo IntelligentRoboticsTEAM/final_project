@@ -104,9 +104,9 @@ int main(int argc, char **argv) {
     ROS_INFO("Action server started.");
 
     assignment2::PoseGoal goal;
+
+    // 1st waypoint
     float degree_theta_z = 0.00;
- 	
- 	//Waypoint Goal
     goal.x = 8.4;     
     goal.y = 0.0;     
     goal.z = 0.00;     
