@@ -70,22 +70,24 @@ roslaunch_add_file_check(launch)
 ## Generate messages in the 'msg' folder
 add_message_files(
 #   DIRECTORY msg
-   FILES Obstacle.msg Object.msg
+   FILES 
+   Obstacle.msg 
+   Object.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES 
    Detection.srv
-   #DIRECTORY ../../tiago_iaslab_simulation/srv
-   #Objs.srv   
 )
 
 
 ## Generate actions in the 'action' folder
 add_action_files(
 #  DIRECTORY action
-  FILES Pose.action Arm.action
+  FILES 
+  Pose.action 
+  Arm.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -137,6 +139,12 @@ add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
 add_executable(detectionNode src/detectionNode.cpp src/utils.cpp)
 target_link_libraries(detectionNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
+
+#manipulationNode executable
+add_executable(manipulationNode src/manipulationNode.cpp src/utils.cpp)
+target_link_libraries(manipulationNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+add_dependencies(manipulationNode ${assignment2_EXPORTED_TARGETS})
+
 
 # clientNode executable
 add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})

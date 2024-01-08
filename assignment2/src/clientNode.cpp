@@ -2,7 +2,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <assignment2/PoseAction.h>
-//#inlcude <assignment2/ArmAction.h>
+#include <assignment2/ArmAction.h>
 #include <tiago_iaslab_simulation/Objs.h>
 #include "utils.h"
 
@@ -16,19 +16,25 @@ void feedbackCallback(const assignment2::PoseFeedbackConstPtr& feedback) {
 
     switch (status) {
         case 0:
-            ROS_INFO("Received status: STOPPED");
+            ROS_INFO("Received status: Pick Started");
             break;
         case 1:
-            ROS_INFO("Received status: MOVING");
+            ROS_INFO("Received status: Place Started");
             break;
         case 2:
-            ROS_INFO("Received status: REACHED_GOAL");
+            ROS_INFO("Received status: Hand is Open");
             break;
         case 3:
-            ROS_INFO("Received status: STARTED_SCAN");
+            ROS_INFO("Received status: Hand is Closed");
             break;
         case 4:
-            ROS_INFO("Received status: ENDED_SCAN");
+            ROS_INFO("Received status: Arm is High");
+            break;
+        case 5:
+            ROS_INFO("Received status: Arm is Low");
+            break;
+        case 6:
+            ROS_INFO("Received status: Action Ended");
             break;
         default:
             ROS_INFO("Received unknown status");
@@ -174,36 +180,16 @@ int main(int argc, char **argv) {
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order[0];
-
-    std::vector<std::pair<geometry_msgs::Pose, int>> pairsOfPoses;
     
+    assignment2::ArmGoal goal;
+    actionlib::SimpleActionClient<assignment2::Arm> ac("manipulationNode", true);
+
     if(detection_client.call(detection_srv)){
-        for(int i = 0; i < detection_srv.response.poses.size(); i++)
-        {
-            geometry_msgs::Pose currentPose = detection_srv.response.poses[i];
-            int ids = detection_srv.response.poses_ids[i];
-            float sizes = detection_srv.response.poses_sizes[i];
-
-        	ROS_INFO("POSITION %d for ID %d", i, ids);
-        	ROS_INFO("X: %f", currentPose.position.x);
-        	ROS_INFO("Y: %f", currentPose.position.y);
-        	ROS_INFO("Z: %f", currentPose.position.z);
-            ROS_INFO("ORIENTATION %d for ID %d", i, ids);
-            ROS_INFO("X: %f", currentPose.orientation.x);
-        	ROS_INFO("Y: %f", currentPose.orientation.y);
-        	ROS_INFO("Z: %f", currentPose.orientation.z);
-            ROS_INFO("W: %f", currentPose.orientation.w);
-
-            std::pair<geometry_msgs::Pose, int> poseIdPair(currentPose, ids);
-            pairsOfPoses.push_back(poseIdPair);
-        }
+        goal.request = 1; // PICK action is called
+        goal.detections = detection_srv.response.detections;
+        
+        ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
     }
-    else{
-    	ROS_ERROR("Failed to call service to detect object's tag on table");
-    }
-
-
-    // ros::ServiceClient manipulationClient = nh.serviceClient<assignment2::Arm>("/manipulate_object");
 
     
     

@@ -10,6 +10,16 @@
 #include "assignment2/Object.h"
 #include "Object.h"
 
+enum class Status {
+    PickStarted = 0,
+    PlaceStarted = 1,
+    HandOpen = 2,
+    HandClosed = 3,
+    ArmHigh = 4,
+    ArmLow = 5,
+    ActionEnded = 6
+};
+
 double degreesToRadians(double degrees);
 std::pair<float, float> polarToCartesian(float r, float theta);
 std::vector<assignment2::Object> convertToMsgType(const std::vector<Object>& objects);
