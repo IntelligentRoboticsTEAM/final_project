@@ -14,4 +14,4 @@ bool objectPlaced
 # 2: hand is closed
 # 3: arm is high
 # 4: arm is low
-int32[] status
+int32 status

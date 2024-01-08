@@ -11,7 +11,32 @@
  * @brief Callback function to handle feedback from the PoseAction server.
  * @param feedback The feedback received from the server.
  */
-void feedbackCallback(const assignment2::PoseFeedbackConstPtr& feedback) {
+void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback) {
+    int status = feedback->status;
+
+    switch (status) {
+        case 0:
+            ROS_INFO("Received status: STOPPED");
+            break;
+        case 1:
+            ROS_INFO("Received status: MOVING");
+            break;
+        case 2:
+            ROS_INFO("Received status: REACHED_GOAL");
+            break;
+        case 3:
+            ROS_INFO("Received status: STARTED_SCAN");
+            break;
+        case 4:
+            ROS_INFO("Received status: ENDED_SCAN");
+            break;
+        default:
+            ROS_INFO("Received unknown status");
+            break;
+    }
+}
+ 
+void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
     switch (status) {
@@ -68,10 +93,10 @@ int main(int argc, char **argv) {
 
     //////// ------ ////////
     
-    actionlib::SimpleActionClient<assignment2::PoseAction> ac("poseRevisited", true);
+    actionlib::SimpleActionClient<assignment2::PoseAction> acNavigation("poseRevisited", true);
     ROS_INFO("Waiting for action server to start.");
     
-    if (!ac.waitForServer(ros::Duration(5.0))) { // Wait for 5 seconds
+    if (!acNavigation.waitForServer(ros::Duration(5.0))) { // Wait for 5 seconds
         ROS_ERROR("Action server not available");
         return 1;
     }
@@ -87,21 +112,21 @@ int main(int argc, char **argv) {
     goal.z = 0.00;     
     degree_theta_z = 0.00; 
     goal.theta_z = degreesToRadians(degree_theta_z);
-    ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
+    acNavigation.sendGoal(goal, NULL, NULL, &feedbackNavigation);
     
     //waiting for result from server
-    bool finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
+    bool finished_before_timeout = acNavigation.waitForResult(ros::Duration(60.0));
  
 	//print result
     if (finished_before_timeout) {
-        actionlib::SimpleClientGoalState state = ac.getState();
+        actionlib::SimpleClientGoalState state = acNavigation.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            const auto& result = *ac.getResult();        
+            const auto& result = *acNavigation.getResult();        
         }
     } else {
         ROS_INFO("Action did not finish before the timeout.");
-        ac.cancelGoal();
+        acNavigation.cancelGoal();
         ROS_INFO("Goal has been cancelled");
     }
 	
@@ -121,19 +146,19 @@ int main(int argc, char **argv) {
     		goal.z = 0.00;     
     		degree_theta_z = 90.00; 
     		goal.theta_z = degreesToRadians(degree_theta_z);
-    		ac.sendGoal(goal, NULL, NULL, &feedbackCallback); 
-    		finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
+    		acNavigation.sendGoal(goal, NULL, NULL, &feedbackNavigation); 
+    		finished_before_timeout = acNavigation.waitForResult(ros::Duration(60.0));
  
 			//print result
     		if (finished_before_timeout) {
-       		 actionlib::SimpleClientGoalState state = ac.getState();
+       		 actionlib::SimpleClientGoalState state = acNavigation.getState();
        		 ROS_INFO("Action finished: %s", state.toString().c_str());
         		if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            		const auto& result = *ac.getResult();        
+            		const auto& result = *acNavigation.getResult();        
         		}
    			 } else {
         		ROS_INFO("Action did not finish before the timeout.");
-       			 ac.cancelGoal();
+       			 acNavigation.cancelGoal();
        			 ROS_INFO("Goal has been cancelled");
    			 }
    			 
@@ -156,20 +181,20 @@ int main(int argc, char **argv) {
     }
  	
  	//tiago reaches the first object position in front of table
-    ac.sendGoal(goal, NULL, NULL, &feedbackCallback); 
+    acNavigation.sendGoal(goal, NULL, NULL, &feedbackNavigation); 
     
-    finished_before_timeout = ac.waitForResult(ros::Duration(60.0));
+    finished_before_timeout = acNavigation.waitForResult(ros::Duration(60.0));
  
 	//print result
     if (finished_before_timeout) {
-        actionlib::SimpleClientGoalState state = ac.getState();
+        actionlib::SimpleClientGoalState state = acNavigation.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            const auto& result = *ac.getResult();        
+            const auto& result = *acNavigation.getResult();        
         }
     } else {
         ROS_INFO("Action did not finish before the timeout.");
-        ac.cancelGoal();
+        acNavigation.cancelGoal();
         ROS_INFO("Goal has been cancelled");
     }
 
@@ -181,14 +206,14 @@ int main(int argc, char **argv) {
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order[0];
     
-    assignment2::ArmGoal goal;
-    actionlib::SimpleActionClient<assignment2::Arm> ac("manipulationNode", true);
+    assignment2::ArmGoal armGoal;
+    actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
 
     if(detection_client.call(detection_srv)){
-        goal.request = 1; // PICK action is called
-        goal.detections = detection_srv.response.detections;
+        armGoal.request = 1; // PICK action is called
+        armGoal.detections = detection_srv.response.detections;
         
-        ac.sendGoal(goal, NULL, NULL, &feedbackCallback);
+        acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
     }
 
     

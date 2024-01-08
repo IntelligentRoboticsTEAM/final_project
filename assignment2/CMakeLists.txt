@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   control_msgs
   geometry_msgs
+  apriltag_ros
   tf
   tf_conversions
 )
@@ -96,6 +97,7 @@ generate_messages(
   actionlib_msgs
   std_msgs
   geometry_msgs
+  apriltag_ros
 )
 
 ################################################

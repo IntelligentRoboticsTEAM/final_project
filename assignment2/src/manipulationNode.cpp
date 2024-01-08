@@ -60,7 +60,7 @@ public:
 
     bool pickObject(){
         feedback_.status = 0;
-        as_.publishFeedback(feedback_)
+        as_.publishFeedback(feedback_);
 
         feedback_.status = 1;
         as_.publishFeedback(feedback_);
@@ -84,24 +84,27 @@ public:
      */
     void executeCB(const assignment2::ArmGoalConstPtr &goal) { 
 
+		bool objectPicked = false;
+		bool objectPlaced = false;		
+		
         switch(goal->request){
             case 1:
-                bool objectPicked = pickObject();
+                objectPicked = pickObject();
                 if (objectPicked){
-                    result_.arrived = objectPicked;
+                    result_.objectPicked = objectPicked;
                     as_.setSucceeded(result_);
                 } else {
-                    result_.arrived = objectPicked;
+                    result_.objectPicked = objectPicked;
                     as_.setAborted(result_);
                 }
                 break;
             case 2:
-                bool objectPlaced = placeObject();
+                objectPlaced = placeObject();
                 if (objectPlaced){
-                    result_.arrived = objectPlaced;
+                    result_.objectPlaced = objectPlaced;
                     as_.setSucceeded(result_);
                 } else {
-                    result_.arrived = objectPlaced;
+                    result_.objectPlaced = objectPlaced;
                     as_.setAborted(result_);
                 }
                 break;
@@ -109,10 +112,6 @@ public:
                 ROS_ERROR("Not a possible choice.");
                 break;
         }
-
-		
-
-
     }
 };
 

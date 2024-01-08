@@ -149,7 +149,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		// res.poses_ids.push_back(apriltag_msg->detections[i].id[0]);
 		// res.poses_sizes.push_back(apriltag_msg->detections[i].size[0]);
 
-		res.poses.push_back(apriltag_msg->detections)
+		res.detections = apriltag_msg->detections;
 	}
 	
 	return true;
