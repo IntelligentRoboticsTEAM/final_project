@@ -7,6 +7,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <tf/transform_listener.h>
 #include <control_msgs/PointHeadAction.h>
@@ -72,7 +73,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	pointStamped.point.z = 1.00;  
 	
 	/*
-	tf::TransformListener tfListener;
+	
 	try
     {
         tfListener.waitForTransform("/xtion_rgb_optical_frame", pointStamped.header.frame_id, ros::Time(0), ros::Duration(3.0));
@@ -117,12 +118,6 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 	apriltag_ros::AprilTagDetectionArray::ConstPtr apriltag_msg = ros::topic::waitForMessage<apriltag_ros::AprilTagDetectionArray>("/tag_detections", ros::Duration(10.0));
 	
-	//check if Requested_ID is inside of the array of the returned tags
-	//std::vector<int> ids = apriltag_msg.detections[0].id;
-	/// auto it = std::find(ids.begin(), ids.end(), requested_id);
-	// ROS_INFO("Number of detections: %d" , (int)apriltag_msg->detections.size());
-	// ROS_INFO("Number of detections[0]: %d" , (int)apriltag_msg->detections[0].size());
-	// ROS_INFO("Number of detections[0].id: %d" , (int)apriltag_msg->detections[0].id.size());
 	
 	geometry_msgs::PoseWithCovarianceStamped poseCovarianceStamped;
 	geometry_msgs::PoseWithCovariance poseCovariance;
@@ -134,15 +129,30 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	{
 		if (apriltag_msg->detections[i].id[0] == req.requested_id)
 		{
-			ROS_INFO("requested_id exists in the vector at indexx %d", i);
-			ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[0].size[0]);
+			ROS_INFO("requested_id exists in the vector at index %d", i);
 		} 
 
 		poseCovarianceStamped = apriltag_msg->detections[i].pose;
 		poseCovariance = poseCovarianceStamped.pose;
 		pose = poseCovariance.pose;
-
-		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z);
+		
+		geometry_msgs::PoseStamped in_out_point;
+		in_out_point.header.frame_id = "/xtion_rgb_optical_frame";
+		in_out_point.pose = pose;
+		
+		ROS_INFO("ID pre: %d", apriltag_msg->detections[i].id[0]);
+		//ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[i].size[0]);
+		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z); //camera_frame
+		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+		
+		tf::TransformListener tfListener;
+		tfListener.transformPose("/base_link", in_out_point, in_out_point);
+		
+		pose = in_out_point.pose;
+		
+		ROS_INFO("ID post: %d", apriltag_msg->detections[i].id[0]);
+		//ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[i].size[0]);
+		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z); //camera_frame
 		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 
 		res.detections = apriltag_msg->detections;

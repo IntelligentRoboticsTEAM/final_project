@@ -68,6 +68,7 @@ void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
 }
 
 int main(int argc, char **argv) {
+    
     ros::init(argc, argv, "client_pose_revisited");
     
     ros::NodeHandle nh;
@@ -212,6 +213,7 @@ int main(int argc, char **argv) {
     if(detection_client.call(detection_srv)){
         armGoal.request = 1; // PICK action is called
         armGoal.detections = detection_srv.response.detections;
+        
         
         acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
     }
