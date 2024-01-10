@@ -51,17 +51,6 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	//Get camera info from correct topic
 	sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/xtion/rgb/camera_info", ros::Duration(10.0));
 	
-	//define a cv::Mat to store the camera parameters
-	cv::Mat cameraIntrinsics;
- 	if(msg.use_count() > 0)
-	{
-		cameraIntrinsics = cv::Mat::zeros(3,3,CV_64F);
-		cameraIntrinsics.at<double>(0, 0) = msg->K[0]; //fx
-		cameraIntrinsics.at<double>(1, 1) = msg->K[4]; //fy
-		cameraIntrinsics.at<double>(0, 2) = msg->K[2]; //cx
-		cameraIntrinsics.at<double>(1, 2) = msg->K[5]; //cy
-		cameraIntrinsics.at<double>(2, 2) = 1;
-	}
 	
 	//define a target point to make tiago point at
 	geometry_msgs::PointStamped pointStamped; 
@@ -72,19 +61,6 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	pointStamped.point.y = 0.80;
 	pointStamped.point.z = 1.00;  
 	
-	/*
-	
-	try
-    {
-        tfListener.waitForTransform("/xtion_rgb_optical_frame", pointStamped.header.frame_id, ros::Time(0), ros::Duration(3.0));
-        tfListener.transformPoint("/xtion_rgb_optical_frame", pointStamped, pointStamped);
-    }
-    catch (tf::TransformException& ex)
-    {
-        ROS_ERROR("Failed to transform table point to /xtion_rgb_optical_frame: %s", ex.what());
-        return 1;
-    } 
-    */
 
 	ROS_INFO("X: %f, Y: %f, Z: %f", (float)pointStamped.point.x, (float)pointStamped.point.y, (float)pointStamped.point.z);
 
@@ -124,7 +100,9 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	geometry_msgs::Pose pose;		// contains Point and Quaternion
 	geometry_msgs::Point position;	// float x, y, z
 	geometry_msgs::Quaternion orientation; // float x, y, z, w
-
+	
+	std::vector<apriltag_ros::AprilTagDetection> transformed_detections;
+	
 	for(int i = 0; i < apriltag_msg->detections.size() ; i++ )
 	{
 		if (apriltag_msg->detections[i].id[0] == req.requested_id)
@@ -145,20 +123,32 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z); //camera_frame
 		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 		
-		tf::TransformListener tfListener;
-		tfListener.waitForTransform("/xtion_rgb_optical_frame", "/base_footprint", ros::Time(0), ros::Duration(3.0));
-		tfListener.transformPose("/base_footprint", in_out_point, in_out_point);
 		
-		pose = in_out_point.pose;
+		try
+		{
+			tf::TransformListener tfListener;
+		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/base_footprint", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/base_footprint", in_out_point, in_out_point);
+		}
+		catch (tf::TransformException& ex)
+		{
+		    ROS_ERROR("Failed to transform table point to /xtion_rgb_optical_frame: %s", ex.what());
+		    return 1;
+		} 
+		
+		apriltag_ros::AprilTagDetection transformed_detection;
+		transformed_detection.pose.pose.pose = in_out_point.pose;
+		transformed_detections.push_back(transformed_detection);
 		
 		ROS_INFO("ID post: %d", apriltag_msg->detections[i].id[0]);
 		//ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[i].size[0]);
-		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z); //camera_frame
-		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", transformed_detection.pose.pose.pose.position.x, transformed_detection.pose.pose.pose.position.y, transformed_detection.pose.pose.pose.position.z); //camera_frame
+		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", transformed_detection.pose.pose.pose.orientation.x, transformed_detection.pose.pose.pose.orientation.y, transformed_detection.pose.pose.pose.orientation.z, transformed_detection.pose.pose.pose.orientation.w);
 
-		res.detections = apriltag_msg->detections;
+
 	}
 	
+	res.detections = transformed_detections;
 	return true;
 }
 

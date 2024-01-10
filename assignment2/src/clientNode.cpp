@@ -211,6 +211,7 @@ int main(int argc, char **argv) {
     actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
 
     if(detection_client.call(detection_srv)){
+        ROS_INFO("Detection done, tag id returned in base_footprint reference frame");
         armGoal.request = 1; // PICK action is called
         armGoal.detections = detection_srv.response.detections;
         

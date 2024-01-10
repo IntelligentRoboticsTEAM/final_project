@@ -43,22 +43,19 @@ public:
 
     bool pickObject(geometry_msgs::Pose pose){
 
-    // Creating PoseStamped  
+    	// Creating PoseStamped  
         geometry_msgs::PoseStamped goalPose;
         goalPose.header.frame_id = frameName;
-        goalPose.pose.position.x = pose.position.x;
-        goalPose.pose.position.y = pose.position.y;
-        goalPose.pose.position.z = pose.position.z;
-        goalPose.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(pose.orientation.x, pose.orientation.y, pose.orientation.z);        
+        goalPose.pose = pose;        
 
-    // Creating  MoveGroupInterface group_arm_torso
+    	// Creating  MoveGroupInterface group_arm_torso
         //select group of joints
         moveit::planning_interface::MoveGroupInterface group_arm_torso("arm_torso");
         group_arm_torso.setPlannerId("SBLkConfigDefault");
         group_arm_torso.setPoseReferenceFrame(frameName);
         group_arm_torso.setPoseTarget(goalPose);
 
-    // Planning the movement of the arm
+    	// Planning the movement of the arm
         ROS_INFO_STREAM("Planning to move " <<
                         group_arm_torso.getEndEffectorLink() << " to a target pose expressed in " <<
                         group_arm_torso.getPlanningFrame());
@@ -66,7 +63,7 @@ public:
         group_arm_torso.setStartStateToCurrentState();
         group_arm_torso.setMaxVelocityScalingFactor(1.0);
 
-    // Creaing plan
+    	// Creaing plan
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
         //set maximum time to find a plan
         group_arm_torso.setPlanningTime(5.0);
@@ -78,7 +75,7 @@ public:
         ROS_INFO_STREAM("Plan found in " << my_plan.planning_time_ << " seconds");
         ros::Time start = ros::Time::now();
 
-    // Execute the Movement
+    	// Execute the Movement
         moveit::core::MoveItErrorCode e = group_arm_torso.move();
         if (!bool(e))
             throw std::runtime_error("Error executing plan");
