@@ -146,7 +146,8 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
 		
 		tf::TransformListener tfListener;
-		tfListener.transformPose("/base_link", in_out_point, in_out_point);
+		tfListener.waitForTransform("/xtion_rgb_optical_frame", "/base_footprint", ros::Time(0), ros::Duration(3.0));
+		tfListener.transformPose("/base_footprint", in_out_point, in_out_point);
 		
 		pose = in_out_point.pose;
 		
