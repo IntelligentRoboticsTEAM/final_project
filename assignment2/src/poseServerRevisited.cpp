@@ -37,17 +37,34 @@ public:
         as_.publishFeedback(feedback_);
 
 		// Initializing data for goalPosition
-        Position goalPosition;
-        goalPosition.x = goal->x;
-        goalPosition.y = goal->y;
-        goalPosition.z = goal->z;
-        goalPosition.yaw = goal->theta_z;
-        ROS_INFO("Goal: x=%f, y=%f, z=%f, theta_z=%f", goalPosition.x, goalPosition.y, goalPosition.z, goalPosition.yaw);
+        int id = goal.id;
 
 		// Navigation
         feedback_.status = 1;
         as_.publishFeedback(feedback_);
-        executionDone = navigateRobotToGoal(goalPosition);
+
+        // 1st waypoint
+        navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);
+
+        switch (id) {
+            case 1:
+                //final position for ID 1
+                executionDone = navigateRobotToGoal(8.15, -2.1, 0.0, -110.0);
+                break;
+            case 2:
+                //2nd waypoint
+                navigateRobotToGoal(8.40, -4.2, 0.0, 90.0);
+                //final position for ID 2
+                executionDone = navigateRobotToGoal(7.50, -4.00, 0.0, 70.0);
+                break;
+            case 3:
+                //final position for ID 3
+                executionDone = navigateRobotToGoal(7.20, -2.1, 0.0, -50.0);
+                break;
+            default:
+                ROS_ERROR("Error on selecting object ordering");
+                break;
+        }
 
 		if(executionDone)
 		{
