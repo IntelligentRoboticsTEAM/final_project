@@ -21,5 +21,6 @@ enum class Status : int {
 
 // declarations
 bool navigateRobotToGoal(const Position& goalPosition);
+bool navigateRobotToGoal(float x, float y, float z, float theta_z);
 
 #endif // NAVIGATION_METHODS_H
