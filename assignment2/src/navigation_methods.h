@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Obstacle.h"
+#include "utils.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
@@ -11,7 +12,7 @@ struct Position {
     float roll, pitch, yaw;
 };
 
-enum class Status : int {
+enum class StatusRobot : int {
     STOPPED = 0,
     MOVING = 1,
     REACHED_GOAL = 2,

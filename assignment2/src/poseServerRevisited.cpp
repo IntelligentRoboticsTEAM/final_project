@@ -37,7 +37,7 @@ public:
         as_.publishFeedback(feedback_);
 
 		// Initializing data for goalPosition
-        int id = goal.id;
+        int id = goal->id;
 
 		// Navigation
         feedback_.status = 1;

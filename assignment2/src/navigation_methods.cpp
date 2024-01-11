@@ -40,36 +40,39 @@ bool navigateRobotToGoal(const Position& goalPosition)
     return goalReached;
 }
 
-
-/*Position decidePosition(int id){
-	
-}
-*/
-
-Position setWaypoint(int sequence){
-
-    Position pose;
-
-    switch(sequence){
-        case 1:
-
-            break;
-
-
-        case 2:
-
-            break;
-
-        case 3:
-
-            break;
-
-        default:
-
-
-            break;
+bool navigateRobotToGoal(float x, float y, float z, float theta_z)
+{
+    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
+    while (!ac.waitForServer(ros::Duration(20.0))) {
+        ROS_INFO("Waiting for the move_base action server to come up");
     }
 
-    return pose;
+    //define goal
+    ros::Time startTime = ros::Time::now();
+    move_base_msgs::MoveBaseGoal goal;
+    goal.target_pose.header.frame_id = "map";
+    goal.target_pose.header.stamp = startTime;
+    
+    //set goal position
+    goal.target_pose.pose.position.x = x;
+    goal.target_pose.pose.position.y = y;
+    goal.target_pose.pose.position.z = z;
+    
+    float theta_z1 = degreesToRadians(theta_z);
+    
+    // Set goal orientation
+    tf2::Quaternion myQuaternion;
+    myQuaternion.setRPY( 0, 0, theta_z1);
+    myQuaternion.normalize();
+    goal.target_pose.pose.orientation = tf2::toMsg(myQuaternion);
+
+	//send goal to ActionServer
+    ac.sendGoal(goal);
+
+    // Wait for the robot to reach the goal before a fixed timeout
+    bool goalReached = ac.waitForResult(ros::Duration(60.0));
+	if(!goalReached) ac.cancelGoal();
+    return goalReached;
 }
+
 

@@ -1,6 +1,6 @@
 #include "utils.h"
 
-double degreesToRadians(double degrees) {
+float degreesToRadians(float degrees) {
     return degrees * (M_PI / 180.0);
 }
 

@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
     assignment2::PoseGoal goal;
     goal.id = object_order[0];
     acNavigation.sendGoal(goal, NULL, NULL, &feedbackNavigation); 
-    finished_before_timeout = acNavigation.waitForResult(ros::Duration(60.0));
+    bool finished_before_timeout = acNavigation.waitForResult(ros::Duration(60.0));
     
     if (finished_before_timeout) {
         actionlib::SimpleClientGoalState state = acNavigation.getState();
@@ -133,12 +133,14 @@ int main(int argc, char **argv) {
 
     if(detection_client.call(detection_srv)){
         ROS_INFO("Detection done, tag id returned in base_footprint reference frame");
+        
         armGoal.request = 1; // PICK action is called
         armGoal.detections = detection_srv.response.detections;
+        
+        
         acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
     }
-
+    
     return 0;
 }
-
 

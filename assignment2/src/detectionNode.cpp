@@ -17,6 +17,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 
+
 ros::Time latestImageStamp;
 
 // ROS call back for every new image received
@@ -105,11 +106,6 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	
 	for(int i = 0; i < apriltag_msg->detections.size() ; i++ )
 	{
-		if (apriltag_msg->detections[i].id[0] == req.requested_id)
-		{
-			ROS_INFO("requested_id exists in the vector at index %d", i);
-		} 
-
 		poseCovarianceStamped = apriltag_msg->detections[i].pose;
 		poseCovariance = poseCovarianceStamped.pose;
 		pose = poseCovariance.pose;
