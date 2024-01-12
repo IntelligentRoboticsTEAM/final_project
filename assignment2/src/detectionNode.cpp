@@ -128,7 +128,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		}
 		catch (tf::TransformException& ex)
 		{
-		    ROS_ERROR("Failed to transform table point to /xtion_rgb_optical_frame: %s", ex.what());
+		    ROS_ERROR("Failed to transform point to /xtion_rgb_optical_frame: %s", ex.what());
 		    return 1;
 		} 
 		

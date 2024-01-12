@@ -140,16 +140,11 @@ int main(int argc, char **argv) {
         detectionsObj = detection_srv.response.detections;  
         armGoal.detections = detectionsObj;
       	flag = true;
-
-        ROS_INFO("armGoal.detections.size() = %d ", (int)armGoal.detections.size());
     }
     
     if(flag){
-		for (int i = 0; i < armGoal.detections.size(); i++)
-			ROS_INFO("armGoal.detections[%d].id[0] = %d ", i, (int)armGoal.detections[i].id[0]);
-	
 		acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
-	} else {
+	}else{
 		ROS_ERROR("Manipulation not working, ERROR IN CLIENT");
 	}
     
