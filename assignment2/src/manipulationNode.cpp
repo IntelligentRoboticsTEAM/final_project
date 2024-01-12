@@ -49,7 +49,7 @@ public:
 
 	  moveit_msgs::CollisionObject table_object;
 	  table_object.id = "table";
-	  table_object.header.frame_id = "odom";
+	  table_object.header.frame_id = "/base_footprint";
 	  
 	  // Define the shape of the collision object
 	  shape_msgs::SolidPrimitive primitive;
@@ -59,7 +59,7 @@ public:
 	  primitive.dimensions[1] = 0.92;  // y dimension
 	  primitive.dimensions[2] = 0.755;  // z dimension
 
-	  // Set the pose of the collision object in the base frame
+	  // Set the pose of the collision object in the odom frame
 	  geometry_msgs::Pose table_pose;
 	  table_pose.orientation.x = 0.0;
 	  table_pose.orientation.y = 0.0;
@@ -70,10 +70,27 @@ public:
 	  table_pose.position.z = 0.755;
 	  
 	  table_object.operation = 0; //ADD
-
+		
+	  geometry_msgs::PoseStamped table_pose_conversion;
+	  table_pose_conversion.header.frame_id = "/odom";
+	  table_pose_conversion.pose = table_pose;
+	  
+	  try
+		{
+			tf::TransformListener tfListener;
+		    tfListener.waitForTransform("/odom", "/base_footprint", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/base_footprint", table_pose_conversion, table_pose_conversion);
+		}
+		catch (tf::TransformException& ex)
+		{
+		    ROS_ERROR("Failed to transform point to /base_footprint: %s", ex.what());
+		}
+	  
+	  table_pose = table_pose_conversion.pose;
+		
 	  // Add the primitive to the collision object
 	  table_object.primitives.push_back(primitive);
-	  table_object.primitive_poses.push_back(table_pose);
+	  table_object.primitive_poses.push_back(table_pose); //base_footprint
 	
 	  collision_objects.push_back(table_object);
 
