@@ -49,7 +49,7 @@ public:
 
 	  moveit_msgs::CollisionObject table_object;
 	  table_object.id = "table";
-	  table_object.header.frame_id = "/base_footprint";
+	  table_object.header.frame_id = "/map";
 	  
 	  // Define the shape of the collision object
 	  shape_msgs::SolidPrimitive primitive;
@@ -67,30 +67,13 @@ public:
 	  table_pose.orientation.w = 0.0;  // Quaternion identity
 	  table_pose.position.x = 7.82;
 	  table_pose.position.y = -2.98;
-	  table_pose.position.z = 0.755;
+	  table_pose.position.z = 0.375;
 	  
 	  table_object.operation = 0; //ADD
-		
-	  geometry_msgs::PoseStamped table_pose_conversion;
-	  table_pose_conversion.header.frame_id = "/odom";
-	  table_pose_conversion.pose = table_pose;
 	  
-	  try
-		{
-			tf::TransformListener tfListener;
-		    tfListener.waitForTransform("/odom", "/base_footprint", ros::Time(0), ros::Duration(3.0));
-			tfListener.transformPose("/base_footprint", table_pose_conversion, table_pose_conversion);
-		}
-		catch (tf::TransformException& ex)
-		{
-		    ROS_ERROR("Failed to transform point to /base_footprint: %s", ex.what());
-		}
-	  
-	  table_pose = table_pose_conversion.pose;
-		
 	  // Add the primitive to the collision object
 	  table_object.primitives.push_back(primitive);
-	  table_object.primitive_poses.push_back(table_pose); //base_footprint
+	  table_object.primitive_poses.push_back(table_pose); //map
 	
 	  collision_objects.push_back(table_object);
 
@@ -105,13 +88,13 @@ public:
 			case 1:
 
 				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/base_footprint";
+				obstacle_object.header.frame_id = "/map";
 				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
 	  			primitive.dimensions.resize(3);
 	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
 	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.75;  // z dimension
+	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
 				
 				object_pose = detections[i].pose.pose.pose;
 				
@@ -126,13 +109,13 @@ public:
 			case 2: //da rivedere perche ha una forma strana
 
 				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/base_footprint";
+				obstacle_object.header.frame_id = "/map";
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
 	  			primitive.dimensions.resize(3);
 	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
 	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.75;  // z dimension
+	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
 				
 				object_pose = detections[i].pose.pose.pose;
 				
@@ -147,13 +130,13 @@ public:
 			case 3:
 
 				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/base_footprint";
+				obstacle_object.header.frame_id = "/map";
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
 	  			primitive.dimensions.resize(3);
 	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
 	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.75;  // z dimension
+	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
 				
 				object_pose = detections[i].pose.pose.pose;
 				
@@ -168,13 +151,13 @@ public:
 			default:
 
 				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/base_footprint";
+				obstacle_object.header.frame_id = "/map";
 				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
 	  			primitive.dimensions.resize(3);
 	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
 	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.75;  // z dimension
+	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
 				
 				object_pose = detections[i].pose.pose.pose;
 				
@@ -194,42 +177,6 @@ public:
 	}
 
 	
-    void openGripper(trajectory_msgs::JointTrajectory& posture)
-	{
-	  ROS_INFO("Opening gripper");
-	  // BEGIN_SUB_TUTORIAL open_gripper
-	  /* Add both finger joints of panda robot. */
-	  posture.joint_names.resize(2);
-	  posture.joint_names[0] = "gripper_left_finger_link";
-	  posture.joint_names[1] = "gripper_right_finger_link";
-
-	  /* Set them as open, wide enough for the object to fit. */
-	  posture.points.resize(1);
-	  posture.points[0].positions.resize(2);
-	  posture.points[0].positions[0] = 0.04;
-	  posture.points[0].positions[1] = 0.04;
-	  posture.points[0].time_from_start = ros::Duration(0.5);
-	  // END_SUB_TUTORIAL
-	}
-
-	void closedGripper(trajectory_msgs::JointTrajectory& posture)
-	{
-	  ROS_INFO("Closing gripper");
-	  
-	  posture.joint_names.resize(2);
-	  posture.joint_names[0] = "gripper_left_finger_link";
-	  posture.joint_names[1] = "gripper_right_finger_link";
-
-	  /* Set them as closed. */
-	  posture.points.resize(1);
-	  posture.points[0].positions.resize(2);
-	  posture.points[0].positions[0] = 0.00;
-	  posture.points[0].positions[1] = 0.00;
-	  posture.points[0].time_from_start = ros::Duration(0.5);
-
-	}
-	
-	
     bool pickTutorial(moveit::planning_interface::MoveGroupInterface& group, std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
 		
 		int detection_index = 0;
@@ -237,79 +184,90 @@ public:
 		  	detection_index++;
 		}
 		
-		ROS_INFO("Object to be picked id: %d", detections[detection_index].id[0]);
-	  	
+		//create a vector of poses to be reached sequentially by tiago's arm
+		std::vector<geometry_msgs::PoseStamped> poses;
+		
+		//Define waypoint to avoid the planning failure
+	  	geometry_msgs::PoseStamped waypoint;
+        waypoint.header.frame_id = "/base_footprint";
+        waypoint.pose.position.x = 0.2;
+        waypoint.pose.position.y = -0.5;
+        waypoint.pose.position.z = 0.9;   
+        waypoint.pose.orientation.x = 0;
+        waypoint.pose.orientation.y = 0;
+        waypoint.pose.orientation.z = 1;
+        waypoint.pose.orientation.w = 0;
+    	
+    	poses.push_back(waypoint);
+    	
     	// Creating PoseStamped approach pose 
         geometry_msgs::PoseStamped appro_pose;
-        appro_pose.header.frame_id = "/base_footprint";
+        appro_pose.header.frame_id = "/map";
         appro_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         appro_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         appro_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.10;   
-        appro_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
-		//ROS_INFO("appro_pose: %f \t %f \t %f", appro_pose.pose.position.x, appro_pose.pose.position.y, appro_pose.pose.position.z);
-
-		geometry_msgs::PoseStamped test_pose;
-        test_pose.header.frame_id = "/base_footprint";
-        test_pose.pose.position.x = 0.2;
-        test_pose.pose.position.y = -0.5;
-        test_pose.pose.position.z = 0.9;   
-        test_pose.pose.orientation.x = 0;
-        test_pose.pose.orientation.y = 0;
-        test_pose.pose.orientation.z = 1;
-        test_pose.pose.orientation.w = 0;
+    	appro_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
+    	
+    	poses.push_back(appro_pose);
+    	/*
+    	ROS_INFO("Object to be picked id: %d", detections[detection_index].id[0]);
+		ROS_INFO("appro_position: %f \t %f \t %f", appro_pose.pose.position.x, appro_pose.pose.position.y, appro_pose.pose.position.z);
+		ROS_INFO("appro_orientation: %f \t %f \t %f \t %f", appro_pose.pose.orientation.x, appro_pose.pose.orientation.y, appro_pose.pose.orientation.z, appro_pose.pose.orientation.w);
+		*/
         
 		// Creating PoseStamped goal pose 
         geometry_msgs::PoseStamped goal_pose;
-        goal_pose.header.frame_id = "/base_footprint";
+        goal_pose.header.frame_id = "/map";
         goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z; 
         goal_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
         
+        poses.push_back(goal_pose);
+        
         // Creating PoseStamped departs pose 
         geometry_msgs::PoseStamped departs_pose;
-        departs_pose.header.frame_id = "/base_footprint";
+        departs_pose.header.frame_id = "/map";
         departs_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         departs_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         departs_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.10; 
         departs_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
-                
-    	// Creating  MoveGroupInterface group_arm_torso
-        //select group of joints
-        group.setPlannerId("SBLkConfigDefault");
-        group.setPoseReferenceFrame("/base_footprint");
-        group.setPoseTarget(appro_pose);
-		
-		
-    	// Planning the movement of the arm
-        ROS_INFO_STREAM("Planning to move " <<
-                        group.getEndEffectorLink() << " to a target pose expressed in " <<
-                        group.getPlanningFrame());
-
+  		
+  		poses.push_back(departs_pose);
+  		
+  		// set pose targets to be the sequence of defined poses to perform the pick of an object
+  		group.setPlannerId("SBLkConfigDefault");
+        group.setPoseReferenceFrame("/map");
         group.setStartStateToCurrentState();
         group.setMaxVelocityScalingFactor(1.0);
+		
+		for(int i = 0; i < poses.size(); i++){
+			// Creating plan
+		    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+		    
+		    group.setPoseTarget(poses[i]);
+		    group.setPlanningTime(15.0);
+		    
+		    bool success = bool(group.plan(my_plan));
 
-    	// Creaing plan
-        moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-        group.setPlanningTime(15.0);
-        bool success = bool(group.plan(my_plan));
+		    if (!success)
+		        ROS_ERROR("No plan found");
 
-        if ( !success )
-            throw std::runtime_error("No plan found");
+		    //ROS_INFO_STREAM("Plan found in " << my_plan.planning_time_ << " seconds");
+		    ros::Time start = ros::Time::now();
 
-        ROS_INFO_STREAM("Plan found in " << my_plan.planning_time_ << " seconds");
-        ros::Time start = ros::Time::now();
+			// Execute the Movement
+		    moveit::core::MoveItErrorCode e = group.move();
+		    if (!bool(e))
+		        ROS_ERROR("Error executing plan");
+		    else
+		        //ROS_INFO("Here I should close the gripper");
+		        //controlGripper(true); 
 
-    	// Execute the Movement
-        moveit::core::MoveItErrorCode e = group.move();
-        if (!bool(e))
-            throw std::runtime_error("Error executing plan");
-        else
-            ROS_INFO("Here I should close the gripper");
-            //controlGripper(true); 
-
-        ROS_INFO_STREAM("Motion duration: " << (ros::Time::now() - start).toSec());
-
+		    //ROS_INFO_STREAM("Motion duration: " << (ros::Time::now() - start).toSec());
+		    ROS_INFO("Motion number: %d, executed", i);
+		}
+		
         //spinner.stop();
 
         return true;

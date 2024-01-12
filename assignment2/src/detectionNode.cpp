@@ -123,8 +123,8 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		try
 		{
 			tf::TransformListener tfListener;
-		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/base_footprint", ros::Time(0), ros::Duration(3.0));
-			tfListener.transformPose("/base_footprint", in_out_point, in_out_point);
+		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/map", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/map", in_out_point, in_out_point);
 		}
 		catch (tf::TransformException& ex)
 		{
