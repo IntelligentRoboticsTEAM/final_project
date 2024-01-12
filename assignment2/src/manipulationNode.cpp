@@ -44,7 +44,8 @@ public:
     }
     
     ~ArmAction(void){}
-    void addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, std::vector<apriltag_ros::AprilTagDetection> detections)
+    
+    void addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, const std::vector<apriltag_ros::AprilTagDetection> &detections)
 	{
 	  std::vector<moveit_msgs::CollisionObject> collision_objects;
 	  ROS_INFO("Inside addCollisionObjects");
