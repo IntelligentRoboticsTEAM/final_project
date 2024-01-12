@@ -181,8 +181,7 @@ public:
 
 	  for (int i = 0; i < collision_objects.size(); i++)
 		ROS_INFO("Collision object number: %s", collision_objects[i].id.c_str());
-
-	  ROS_INFO("Collision objects created, number of objects in collision_objects vector: %d", (int)collision_objects.size());
+	  	ROS_INFO("Collision objects created, number of objects in collision_objects vector: %d", (int)collision_objects.size());
 	  planning_scene_interface.applyCollisionObjects(collision_objects);
 	}
 
@@ -230,70 +229,78 @@ public:
 		  } 
 		  
 		  ROS_INFO("Starting the picking procedure");
+		  /*
 		  std::vector<moveit_msgs::Grasp> grasps;
 		  grasps.resize(1);
 
 		  // Setting grasp pose
-		  // ++++++++++++++++++++++
-		  // This is the pose of panda_link8. |br|
-		  // Make sure that when you set the grasp_pose, you are setting it to be the pose of the last link in
-		  // your manipulator which in this case would be `"panda_link8"` You will have to compensate for the
-		  // transform from `"panda_link8"` to the palm of the end effector.
 		  grasps[0].grasp_pose.header.frame_id = "base_footprint";
 		  grasps[0].grasp_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
 		  grasps[0].grasp_pose.pose.position = detections[detection_index].pose.pose.pose.position;
 
 		  // Setting pre-grasp approach
-		  // ++++++++++++++++++++++++++
-		  /* Defined with respect to frame_id */
 		  grasps[0].pre_grasp_approach.direction.header.frame_id = "base_footprint";
-		  /* Direction is set as positive x axis */
+		  // Direction is set as positive x axis 
 		  grasps[0].pre_grasp_approach.direction.vector.x = 1.0;
 		  grasps[0].pre_grasp_approach.min_distance = 0.095;
 		  grasps[0].pre_grasp_approach.desired_distance = 0.115;
 
 		  // Setting post-grasp retreat
-		  // ++++++++++++++++++++++++++
-		  /* Defined with respect to frame_id */
 		  grasps[0].post_grasp_retreat.direction.header.frame_id = "base_footprint";
-		  /* Direction is set as positive z axis */
+		  // Direction is set as positive z axis 
 		  grasps[0].post_grasp_retreat.direction.vector.z = 1.0;
 		  grasps[0].post_grasp_retreat.min_distance = 0.1;
 		  grasps[0].post_grasp_retreat.desired_distance = 0.25;
 
 		  // Setting posture of eef before grasp
-		  // +++++++++++++++++++++++++++++++++++
 		  openGripper(grasps[0].pre_grasp_posture);
-		  // END_SUB_TUTORIAL
-
-		  // BEGIN_SUB_TUTORIAL pick2
-		  // Setting posture of eef during grasp
-		  // +++++++++++++++++++++++++++++++++++
+		  
 		  closedGripper(grasps[0].grasp_posture);
-		  // END_SUB_TUTORIAL
 
-		  // BEGIN_SUB_TUTORIAL pick3
 		  // Set support surface as table1.
 		  move_group.setSupportSurfaceName("table");
 		  // Call pick to pick up the object using the grasps given
 		  move_group.pick(std::to_string(detections[detection_index].id[0]), grasps);
-		  // END_SUB_TUTORIAL
+*/
 		  return true;
 	}
 	
-    bool pickTutorial(moveit::planning_interface::MoveGroupInterface& move_group, std::vector<apriltag_ros::AprilTagDetection> detections){
-
-    	// Creating PoseStamped  
-        geometry_msgs::PoseStamped goalPose;
-        goalPose.header.frame_id = "base_footprint";
-        goalPose.pose = detections[0].pose.pose.pose;        
-
+    bool pickTutorial(moveit::planning_interface::MoveGroupInterface &move_group, std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
+		
+		int detection_index = 0;
+		  while(detections[detection_index].id[0] != requestedID){
+		  	detection_index++;
+		}
+		 
+    	// Creating PoseStamped approach pose 
+        geometry_msgs::PoseStamped appro_pose;
+        appro_pose.header.frame_id = "base_footprint";
+        appro_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
+        appro_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
+        appro_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.z + 0.10;        
+		
+		// Creating PoseStamped goal pose 
+        geometry_msgs::PoseStamped goal_pose;
+        goal_pose.header.frame_id = "base_footprint";
+        goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
+        goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
+        goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.z; 
+        
+        // Creating PoseStamped approach pose 
+        geometry_msgs::PoseStamped departs_pose;
+        departs_pose.header.frame_id = "base_footprint";
+        departs_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
+        departs_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
+        departs_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.z + 0.10; 
+        
     	// Creating  MoveGroupInterface group_arm_torso
         //select group of joints
         move_group.setPlannerId("SBLkConfigDefault");
-        move_group.setPoseReferenceFrame(frameName);
-        move_group.setPoseTarget(goalPose);
-
+        //move_group.setPlanningFrame("");
+        move_group.setPoseReferenceFrame("base_footprint");
+        move_group.setPoseTarget(appro_pose);
+		
+		
     	// Planning the movement of the arm
         ROS_INFO_STREAM("Planning to move " <<
                         move_group.getEndEffectorLink() << " to a target pose expressed in " <<
@@ -305,7 +312,7 @@ public:
     	// Creaing plan
         moveit::planning_interface::MoveGroupInterface::Plan my_plan;
         //set maximum time to find a plan
-        move_group.setPlanningTime(5.0);
+        move_group.setPlanningTime(30.0);
         bool success = bool(move_group.plan(my_plan));
 
         if ( !success )
@@ -349,29 +356,18 @@ public:
      */
     void executeCB(const assignment2::ArmGoalConstPtr &goal) { 
 		
-		ROS_INFO("Inside executeCB");
-		
 		moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-		ROS_INFO("Inside executeCB, after planning");
-		
   		moveit::planning_interface::MoveGroupInterface group("arm_torso");
-  		ROS_INFO("Inside executeCB, after group");
   		group.setPlanningTime(45.0);
 
 	  	addCollisionObjects(planning_scene_interface, goal->detections);
-	  	ROS_INFO("Inside executeCB, adter collision objets adding");
 	  	
 		bool objectPicked = false;
 		bool objectPlaced = false;	
-
-        std::vector<apriltag_ros::AprilTagDetection> detections = goal->detections;
-        geometry_msgs::PoseWithCovarianceStamped p1 = detections[0].pose;
-        geometry_msgs::PoseWithCovariance p2 = p1.pose;
-        geometry_msgs::Pose goalPose = p2.pose;
 		
         switch(goal->request){
             case 1:
-                objectPicked = pickObject(group, detections, goal->id);
+                objectPicked = pickTutorial(group, goal->detections, goal->id);
                 if (objectPicked){
                     result_.objectPicked = objectPicked;
                     as_.setSucceeded(result_);
@@ -381,7 +377,7 @@ public:
                 }
                 break;
             case 2:
-                objectPlaced = placeObject(group, detections);
+                objectPlaced = placeObject(group, goal->detections);
                 if (objectPlaced){
                     result_.objectPlaced = objectPlaced;
                     as_.setSucceeded(result_);
