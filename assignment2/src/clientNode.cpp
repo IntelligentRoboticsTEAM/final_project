@@ -129,27 +129,25 @@ int main(int argc, char **argv) {
     detection_srv.request.requested_id = object_order[0];
    	bool flag = false;
 	assignment2::ArmGoal armGoal;
+	actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
 	std::vector<apriltag_ros::AprilTagDetection> detectionsObj;
 	
     if(detection_client.call(detection_srv)){
         ROS_INFO("Detection done, tag id returned in base_footprint reference frame");
         
         armGoal.request = 1; // PICK action is called
+        armGoal.id = object_order[0];
         detectionsObj = detection_srv.response.detections;  
         armGoal.detections = detectionsObj;
       	flag = true;
-      	ROS_INFO("detection_srv.detections.size = %d ", (int)detection_srv.response.detections.size());
-        ROS_INFO("detection_srv.detections.size = %d ", (int)detectionsObj.size());
-        ROS_INFO("detection_srv.detections.size = %d ", (int)armGoal.detections.size());
+
+        ROS_INFO("armGoal.detections.size() = %d ", (int)armGoal.detections.size());
     }
     
     if(flag){
-		for (int i = 0; i < armGoal.detections.size(); i++){
-			ROS_INFO("detection_srv.detections[%d].id[0] = %d ", i, (int)detection_srv.response.detections[i].id[0]);
-			ROS_INFO("detectionsObj[%d].id[0] = %d ", i, (int)detectionsObj[i].id[0]);
+		for (int i = 0; i < armGoal.detections.size(); i++)
 			ROS_INFO("armGoal.detections[%d].id[0] = %d ", i, (int)armGoal.detections[i].id[0]);
-		}
-		actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
+	
 		acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
 	} else {
 		ROS_ERROR("Manipulation not working, ERROR IN CLIENT");

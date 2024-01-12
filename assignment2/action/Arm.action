@@ -4,6 +4,9 @@
 # request == 2 -> placeObject
 int32 request
 
+# id that must be picked
+int32 id
+
 # Output from Detection.srv
 apriltag_ros/AprilTagDetection[] detections
 ---

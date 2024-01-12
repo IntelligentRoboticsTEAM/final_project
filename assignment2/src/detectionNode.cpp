@@ -135,6 +135,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		apriltag_ros::AprilTagDetection transformed_detection;
 		transformed_detection.pose.pose.pose = in_out_point.pose;
 		transformed_detection.id = apriltag_msg->detections[i].id;
+		transformed_detection.size = apriltag_msg->detections[i].size;
 		transformed_detections.push_back(transformed_detection);
 		
 		ROS_INFO("ID post: %d", apriltag_msg->detections[i].id[0]);

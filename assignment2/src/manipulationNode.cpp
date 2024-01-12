@@ -45,7 +45,7 @@ public:
     
     ~ArmAction(void){}
     
-    void addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, const std::vector<apriltag_ros::AprilTagDetection> &detections)
+    void addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, std::vector<apriltag_ros::AprilTagDetection> detections)
 	{
 	  std::vector<moveit_msgs::CollisionObject> collision_objects;
 	  ROS_INFO("Inside addCollisionObjects");
@@ -88,11 +88,12 @@ public:
 		shape_msgs::SolidPrimitive primitive;
 		geometry_msgs::Pose object_pose;
 		
+		
 		ROS_INFO("Id at iter: %d, is number: %d", (int)i, (int)detections[i].id[0]);
 		switch((int)detections[i].id[0]){
 			case 1:
 				ROS_INFO("Switch 1");
-				obstacle_object.id = "blue";
+				obstacle_object.id = std::to_string(detections[i].id[0]);
 				obstacle_object.header.frame_id = "base_footprint";
 				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
@@ -109,10 +110,11 @@ public:
 	  			obstacle_object.primitive_poses.push_back(object_pose);
 				
 				collision_objects.push_back(obstacle_object);
+			    ROS_INFO("fine case 1");
 				break;
 			case 2: //da rivedere perche ha una forma strana
 				ROS_INFO("Switch 2");
-				obstacle_object.id = "green";
+				obstacle_object.id = std::to_string(detections[i].id[0]);
 				obstacle_object.header.frame_id = "base_footprint";
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
@@ -129,10 +131,11 @@ public:
 	  			obstacle_object.primitive_poses.push_back(object_pose);
 				
 				collision_objects.push_back(obstacle_object);
+				ROS_INFO("fine case 2");
 				break;
 			case 3:
 				ROS_INFO("Switch 1");
-				obstacle_object.id = "red";
+				obstacle_object.id = std::to_string(detections[i].id[0]);
 				obstacle_object.header.frame_id = "base_footprint";
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
@@ -149,37 +152,35 @@ public:
 	  			obstacle_object.primitive_poses.push_back(object_pose);
 				
 				collision_objects.push_back(obstacle_object);
+				ROS_INFO("fine case 3");
 				break;
 			default:
 				ROS_INFO("Switch default");
-				if(detections[i].id[0] > 3){
-					obstacle_object.id = std::to_string(detections[i].id[0]);
-					obstacle_object.header.frame_id = "base_footprint";
-					
-					primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-		  			primitive.dimensions.resize(3);
-		 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
-		  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-		  			primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.75;  // z dimension
-					
-					object_pose = detections[i].pose.pose.pose;
-					
-					obstacle_object.operation = 0; //ADD
-					
-					obstacle_object.primitives.push_back(primitive);
-		  			obstacle_object.primitive_poses.push_back(object_pose);
-					
-					collision_objects.push_back(obstacle_object);
-				}
+				obstacle_object.id = std::to_string(detections[i].id[0]);
+				obstacle_object.header.frame_id = "base_footprint";
+				
+				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
+	  			primitive.dimensions.resize(3);
+	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
+	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
+	  			primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.75;  // z dimension
+				
+				object_pose = detections[i].pose.pose.pose;
+				
+				obstacle_object.operation = 0; //ADD
+				
+				obstacle_object.primitives.push_back(primitive);
+	  			obstacle_object.primitive_poses.push_back(object_pose);
+				
+				collision_objects.push_back(obstacle_object);
+				ROS_INFO("fine default");
 				break;
 		}
 		
 	  }
 
-	  for (int i = 0; i < collision_objects.size(); ++i)
-	  {
+	  for (int i = 0; i < collision_objects.size(); i++)
 		ROS_INFO("Collision object number: %s", collision_objects[i].id.c_str());
-	  }
 
 	  ROS_INFO("Collision objects created, number of objects in collision_objects vector: %d", (int)collision_objects.size());
 	  planning_scene_interface.applyCollisionObjects(collision_objects);
@@ -221,12 +222,12 @@ public:
 
 	}
 	
-	bool pickObject(moveit::planning_interface::MoveGroupInterface& move_group, std::vector<apriltag_ros::AprilTagDetection> detections){
+	bool pickObject(moveit::planning_interface::MoveGroupInterface& move_group, std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
 
 		  int detection_index = 0;
-		  while(detections[detection_index].id[0] > 3){
+		  while(detections[detection_index].id[0] != requestedID){
 		  	detection_index++;
-		  }
+		  } 
 		  
 		  ROS_INFO("Starting the picking procedure");
 		  std::vector<moveit_msgs::Grasp> grasps;
@@ -275,12 +276,12 @@ public:
 		  // Set support surface as table1.
 		  move_group.setSupportSurfaceName("table");
 		  // Call pick to pick up the object using the grasps given
-		  move_group.pick("blue", grasps);
+		  move_group.pick(std::to_string(detections[detection_index].id[0]), grasps);
 		  // END_SUB_TUTORIAL
 		  return true;
 	}
 	
-    bool pick(moveit::planning_interface::MoveGroupInterface& move_group, std::vector<apriltag_ros::AprilTagDetection> detections){
+    bool pickTutorial(moveit::planning_interface::MoveGroupInterface& move_group, std::vector<apriltag_ros::AprilTagDetection> detections){
 
     	// Creating PoseStamped  
         geometry_msgs::PoseStamped goalPose;
@@ -349,14 +350,16 @@ public:
     void executeCB(const assignment2::ArmGoalConstPtr &goal) { 
 		
 		ROS_INFO("Inside executeCB");
+		
 		moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-				ROS_INFO("Inside executeCB, after planning");
+		ROS_INFO("Inside executeCB, after planning");
+		
   		moveit::planning_interface::MoveGroupInterface group("arm_torso");
-  				ROS_INFO("Inside executeCB, after group");
+  		ROS_INFO("Inside executeCB, after group");
   		group.setPlanningTime(45.0);
-  		
+
 	  	addCollisionObjects(planning_scene_interface, goal->detections);
-	  			ROS_INFO("Inside executeCB, adter collision objets adding");
+	  	ROS_INFO("Inside executeCB, adter collision objets adding");
 	  	
 		bool objectPicked = false;
 		bool objectPlaced = false;	
@@ -368,7 +371,7 @@ public:
 		
         switch(goal->request){
             case 1:
-                objectPicked = pickObject(group, detections);
+                objectPicked = pickObject(group, detections, goal->id);
                 if (objectPicked){
                     result_.objectPicked = objectPicked;
                     as_.setSucceeded(result_);
