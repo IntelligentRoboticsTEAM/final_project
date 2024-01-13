@@ -49,7 +49,7 @@ public:
 
 	  moveit_msgs::CollisionObject table_object;
 	  table_object.id = "table";
-	  table_object.header.frame_id = "/map";
+	  table_object.header.frame_id = "odom";
 	  
 	  // Define the shape of the collision object
 	  shape_msgs::SolidPrimitive primitive;
@@ -86,90 +86,90 @@ public:
 		
 		switch((int)detections[i].id[0]){
 			case 1:
-
 				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/map";
-				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-	  			primitive.dimensions.resize(3);
-	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
-	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
+				obstacle_object.header.frame_id = "odom";
 				
-				object_pose = detections[i].pose.pose.pose;
+				primitive.dimensions.resize(2);
+				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755;  // height
+				primitive.dimensions[1] = (detections[i].size[0])/2 + 0.005;  // radius
 				
+				ROS_INFO("Z dimension: %f", primitive.dimensions[0]); //height
+				
+				object_pose.position.x = detections[i].pose.pose.pose.position.x;
+				object_pose.position.y = detections[i].pose.pose.pose.position.y;
+				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.orientation = detections[i].pose.pose.pose.orientation;
+		
 				obstacle_object.operation = 0; //ADD
 				
-				obstacle_object.primitives.push_back(primitive);
-	  			obstacle_object.primitive_poses.push_back(object_pose);
-				
-				collision_objects.push_back(obstacle_object);
-
 				break;
 			case 2: //da rivedere perche ha una forma strana
-
 				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/map";
+				obstacle_object.header.frame_id = "odom";
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
-	  			primitive.dimensions.resize(3);
-	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
-	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
+				primitive.dimensions.resize(3);
+				primitive.dimensions[0] = detections[i].size[0] + 0.005;  // x dimension
+				primitive.dimensions[1] = detections[i].size[0] + 0.005;  // y dimension
+				primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.755;  // z dimension
 				
-				object_pose = detections[i].pose.pose.pose;
+				ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
+				
+				object_pose.position.x = detections[i].pose.pose.pose.position.x;
+				object_pose.position.y = detections[i].pose.pose.pose.position.y;
+				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
 				
-				obstacle_object.primitives.push_back(primitive);
-	  			obstacle_object.primitive_poses.push_back(object_pose);
-				
-				collision_objects.push_back(obstacle_object);
-
 				break;
+				
 			case 3:
-
-				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/map";
+				obstacle_object.id = std::to_string(detections[i].id[0]);				
+				obstacle_object.header.frame_id = "odom";
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
-	  			primitive.dimensions.resize(3);
-	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
-	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
+				primitive.dimensions.resize(3);
+				primitive.dimensions[0] = detections[i].size[0] + 0.005;  // x dimension
+				primitive.dimensions[1] = detections[i].size[0] + 0.005;  // y dimension
+				primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.755;  // z dimension
 				
-				object_pose = detections[i].pose.pose.pose;
+				ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
+				
+				object_pose.position.x = detections[i].pose.pose.pose.position.x;
+				object_pose.position.y = detections[i].pose.pose.pose.position.y;
+				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
 				
-				obstacle_object.primitives.push_back(primitive);
-	  			obstacle_object.primitive_poses.push_back(object_pose);
-				
-				collision_objects.push_back(obstacle_object);
-
 				break;
+				
 			default:
-
-				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "/map";
+				obstacle_object.id = std::to_string(detections[i].id[0]);				
+				obstacle_object.header.frame_id = "odom";
 				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-	  			primitive.dimensions.resize(3);
-	 			primitive.dimensions[0] = detections[i].size[0] + 0.02;  // x dimension
-	  			primitive.dimensions[1] = detections[i].size[0] + 0.02;  // y dimension
-	  			primitive.dimensions[2] = 2*(detections[i].pose.pose.pose.position.z) - 0.755;  // z dimension
+				primitive.dimensions.resize(2);
+				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755;  // height
+				primitive.dimensions[1] = (detections[i].size[0])/2 + 0.005;  // radius
 				
-				object_pose = detections[i].pose.pose.pose;
+				ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
+				
+				object_pose.position.x = detections[i].pose.pose.pose.position.x;
+				object_pose.position.y = detections[i].pose.pose.pose.position.y;
+				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
-				
-				obstacle_object.primitives.push_back(primitive);
-	  			obstacle_object.primitive_poses.push_back(object_pose);
-				
-				collision_objects.push_back(obstacle_object);
-
 				break;
 		}
+		
+		obstacle_object.primitives.push_back(primitive);
+		obstacle_object.primitive_poses.push_back(object_pose);
+		
+		collision_objects.push_back(obstacle_object);
 		
 	  }
 	  
@@ -189,7 +189,7 @@ public:
 		
 		//Define waypoint to avoid the planning failure
 	  	geometry_msgs::PoseStamped waypoint;
-        waypoint.header.frame_id = "/base_footprint";
+        waypoint.header.frame_id = "/base_link";
         waypoint.pose.position.x = 0.2;
         waypoint.pose.position.y = -0.5;
         waypoint.pose.position.z = 0.9;   
@@ -202,7 +202,7 @@ public:
     	
     	// Creating PoseStamped approach pose 
         geometry_msgs::PoseStamped appro_pose;
-        appro_pose.header.frame_id = "/map";
+        appro_pose.header.frame_id = "odom";
         appro_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         appro_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         appro_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.10;   
@@ -217,7 +217,7 @@ public:
         
 		// Creating PoseStamped goal pose 
         geometry_msgs::PoseStamped goal_pose;
-        goal_pose.header.frame_id = "/map";
+        goal_pose.header.frame_id = "odom";
         goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z; 
@@ -227,7 +227,7 @@ public:
         
         // Creating PoseStamped departs pose 
         geometry_msgs::PoseStamped departs_pose;
-        departs_pose.header.frame_id = "/map";
+        departs_pose.header.frame_id = "odom";
         departs_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         departs_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         departs_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.10; 
@@ -237,7 +237,7 @@ public:
   		
   		// set pose targets to be the sequence of defined poses to perform the pick of an object
   		group.setPlannerId("SBLkConfigDefault");
-        group.setPoseReferenceFrame("/map");
+        group.setPoseReferenceFrame("odom");
         group.setStartStateToCurrentState();
         group.setMaxVelocityScalingFactor(1.0);
 		

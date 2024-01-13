@@ -17,4 +17,7 @@
   <!-- Step 5: Run poseServerRevisited Node -->
   <node pkg="assignment2" type="poseServerRevisited" name="pose_server" output="screen" />
   
+  <!-- Step 6: Run rviz -->
+  <!-- node pkg="rviz" type="rviz" name="rviz" output="screen" -->
+
  </launch>

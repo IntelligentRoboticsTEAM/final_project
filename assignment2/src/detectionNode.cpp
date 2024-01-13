@@ -57,7 +57,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	geometry_msgs::PointStamped pointStamped; 
 	
 	pointStamped.header.frame_id = "/xtion_rgb_optical_frame"; 
-	pointStamped.header.stamp    = latestImageStamp;
+	pointStamped.header.stamp = latestImageStamp;
 	pointStamped.point.x = 0.00;
 	pointStamped.point.y = 0.80;
 	pointStamped.point.z = 1.00;  
@@ -123,12 +123,12 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 		try
 		{
 			tf::TransformListener tfListener;
-		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/map", ros::Time(0), ros::Duration(3.0));
-			tfListener.transformPose("/map", in_out_point, in_out_point);
+		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/odom", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/odom", in_out_point, in_out_point);
 		}
 		catch (tf::TransformException& ex)
 		{
-		    ROS_ERROR("Failed to transform point to /xtion_rgb_optical_frame: %s", ex.what());
+		    ROS_ERROR("Failed to transform point to /odom: %s", ex.what());
 		    return 1;
 		} 
 		
