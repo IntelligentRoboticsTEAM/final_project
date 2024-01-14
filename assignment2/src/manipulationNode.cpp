@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cmath>
 
 
 class ArmAction {
@@ -92,9 +93,9 @@ public:
 				
 				primitive.dimensions.resize(2);
 				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755;  // height
-				primitive.dimensions[1] = (detections[i].size[0])/2 + 0.005;  // radius
+				primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.005;  // radius
 				
-				ROS_INFO("Z dimension: %f", primitive.dimensions[0]); //height
+				//ROS_INFO("Z dimension: %f", primitive.dimensions[0]); //height
 				
 				object_pose.position.x = detections[i].pose.pose.pose.position.x;
 				object_pose.position.y = detections[i].pose.pose.pose.position.y;
@@ -110,15 +111,15 @@ public:
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
 				primitive.dimensions.resize(3);
-				primitive.dimensions[0] = detections[i].size[0] + 0.005;  // x dimension
-				primitive.dimensions[1] = detections[i].size[0] + 0.005;  // y dimension
-				primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.755;  // z dimension
+				primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
+				primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
+				primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
 				
-				ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
+				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
 				
-				object_pose.position.x = detections[i].pose.pose.pose.position.x;
-				object_pose.position.y = detections[i].pose.pose.pose.position.y;
-				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015;
+				object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
+				object_pose.position.z = 0.755;
 				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
@@ -131,15 +132,15 @@ public:
 				
 				primitive.type = shape_msgs::SolidPrimitive::BOX;
 				primitive.dimensions.resize(3);
-				primitive.dimensions[0] = detections[i].size[0] + 0.005;  // x dimension
-				primitive.dimensions[1] = detections[i].size[0] + 0.005;  // y dimension
-				primitive.dimensions[2] = detections[i].pose.pose.pose.position.z - 0.755;  // z dimension
+				primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
+				primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
+				primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
 				
-				ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
+				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
 				
 				object_pose.position.x = detections[i].pose.pose.pose.position.x;
 				object_pose.position.y = detections[i].pose.pose.pose.position.y;
-				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[2] / 2;
 				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
@@ -152,10 +153,10 @@ public:
 				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
 				primitive.dimensions.resize(2);
-				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755;  // height
-				primitive.dimensions[1] = (detections[i].size[0])/2 + 0.005;  // radius
+				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755 + 0.05;  // height
+				primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.01;  // radius
 				
-				ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
+				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
 				
 				object_pose.position.x = detections[i].pose.pose.pose.position.x;
 				object_pose.position.y = detections[i].pose.pose.pose.position.y;
@@ -177,38 +178,24 @@ public:
 	}
 
 	
-    bool pickTutorial(moveit::planning_interface::MoveGroupInterface& group, std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
+    bool pickTutorial(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
+    
 		
 		int detection_index = 0;
 		  while(detections[detection_index].id[0] != requestedID){
 		  	detection_index++;
 		}
-		
-		//create a vector of poses to be reached sequentially by tiago's arm
-		std::vector<geometry_msgs::PoseStamped> poses;
-		
-		//Define waypoint to avoid the planning failure
-	  	geometry_msgs::PoseStamped waypoint;
-        waypoint.header.frame_id = "/base_link";
-        waypoint.pose.position.x = 0.2;
-        waypoint.pose.position.y = -0.5;
-        waypoint.pose.position.z = 0.9;   
-        waypoint.pose.orientation.x = 0;
-        waypoint.pose.orientation.y = 0;
-        waypoint.pose.orientation.z = 1;
-        waypoint.pose.orientation.w = 0;
-    	
-    	poses.push_back(waypoint);
     	
     	// Creating PoseStamped approach pose 
         geometry_msgs::PoseStamped appro_pose;
         appro_pose.header.frame_id = "odom";
         appro_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         appro_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        appro_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.10;   
+        appro_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.20;   
     	appro_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
     	
-    	poses.push_back(appro_pose);
+    	geometry_msgs::PoseStamped appro_pose_1;
+    	
     	/*
     	ROS_INFO("Object to be picked id: %d", detections[detection_index].id[0]);
 		ROS_INFO("appro_position: %f \t %f \t %f", appro_pose.pose.position.x, appro_pose.pose.position.y, appro_pose.pose.position.z);
@@ -222,51 +209,75 @@ public:
         goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z; 
         goal_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
-        
-        poses.push_back(goal_pose);
-        
-        // Creating PoseStamped departs pose 
-        geometry_msgs::PoseStamped departs_pose;
-        departs_pose.header.frame_id = "odom";
-        departs_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
-        departs_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        departs_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.10; 
-        departs_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
+
   		
-  		poses.push_back(departs_pose);
-  		
-  		// set pose targets to be the sequence of defined poses to perform the pick of an object
-  		group.setPlannerId("SBLkConfigDefault");
-        group.setPoseReferenceFrame("odom");
-        group.setStartStateToCurrentState();
-        group.setMaxVelocityScalingFactor(1.0);
+		// Creating plan
+	    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+	    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+		moveit::planning_interface::MoveGroupInterface group("arm_torso");
+		addCollisionObjects(planning_scene_interface, detections);
 		
-		for(int i = 0; i < poses.size(); i++){
-			// Creating plan
-		    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-		    
-		    group.setPoseTarget(poses[i]);
-		    group.setPlanningTime(15.0);
-		    
-		    bool success = bool(group.plan(my_plan));
+		group.setPlannerId("SBLkConfigDefault");
+		group.setPoseReferenceFrame("odom");
+		group.setStartStateToCurrentState();
+		group.setMaxVelocityScalingFactor(1.0);
+	    
+	    group.setPoseTarget(appro_pose, "gripper_grasping_frame"); //appro
+	    group.setPlanningTime(10.0);
+	    
+	    bool success = bool(group.plan(my_plan));
 
-		    if (!success)
-		        ROS_ERROR("No plan found");
+	    if(!success)
+	        ROS_ERROR("No plan found for appro_pose");
+		else
+	    	ROS_INFO_STREAM("Plan found for appro_pose in " << my_plan.planning_time_ << " seconds");
+	    
+	    ros::Time start = ros::Time::now();
 
-		    //ROS_INFO_STREAM("Plan found in " << my_plan.planning_time_ << " seconds");
-		    ros::Time start = ros::Time::now();
-
-			// Execute the Movement
-		    moveit::core::MoveItErrorCode e = group.move();
-		    if (!bool(e))
-		        ROS_ERROR("Error executing plan");
-		    else
-		        //ROS_INFO("Here I should close the gripper");
-		        //controlGripper(true); 
-
-		    //ROS_INFO_STREAM("Motion duration: " << (ros::Time::now() - start).toSec());
-		    ROS_INFO("Motion number: %d, executed", i);
+		// Execute the Movement
+	    moveit::core::MoveItErrorCode e = group.move();
+	    if (!bool(e))
+	        ROS_ERROR("Error executing plan appro_pose");
+		else		
+	    	ROS_INFO_STREAM("Motion to appro_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
+		
+		
+		//define and convert the waypoint to goc back in the space according to object orientation
+		try
+		{
+			tf::TransformListener tfListener;
+		    tfListener.waitForTransform("/odom", "/gripper_grasping_frame", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/gripper_grasping_frame", appro_pose, appro_pose_1);
 		}
+		catch (tf::TransformException& ex)
+		{
+		    ROS_ERROR("Failed to transform point to /gripper_grasping_frame: %s", ex.what());
+		    return 1;
+		} 
+		
+		appro_pose_1.pose.position.x -= 0.05;
+		 
+		//set initial movement pose
+		group.setStartStateToCurrentState();
+		group.setPoseReferenceFrame("gripper_grasping_frame");
+		group.setPoseTarget(appro_pose_1, "gripper_grasping_frame"); //appro
+	    group.setPlanningTime(10.0);
+	    
+	    success = bool(group.plan(my_plan));
+
+	    if (!success)
+	        ROS_ERROR("No plan found appro_pose_1");
+		else
+	    	ROS_INFO_STREAM("Plan found for appro_pose_1 in " << my_plan.planning_time_ << " seconds");
+	    
+	    start = ros::Time::now();
+
+		// Execute the Movement
+	    e = group.move();
+	    if (!bool(e))
+	        ROS_ERROR("Error executing plan appro_pose_1");
+		else
+	    	ROS_INFO_STREAM("Motion ended to appro_pose_1, motion duration: " << (ros::Time::now() - start).toSec());
 		
         //spinner.stop();
 
@@ -279,8 +290,7 @@ public:
         // as_.publishFeedback(feedback_);
     }
 
-    bool placeObject(moveit::planning_interface::MoveGroupInterface& group, std::vector<apriltag_ros::AprilTagDetection> detections){
-
+    bool placeObject(std::vector<apriltag_ros::AprilTagDetection> detections){
 
         //spinner.stop();
         return true;
@@ -292,18 +302,13 @@ public:
      * @param goal The goal for the pose action.
      */
     void executeCB(const assignment2::ArmGoalConstPtr &goal) { 
-		
-		moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-  		moveit::planning_interface::MoveGroupInterface group("arm_torso");
-		
+				
 		bool objectPicked = false;
-		bool objectPlaced = false;	
-		
-		addCollisionObjects(planning_scene_interface, goal->detections);
+		bool objectPlaced = false;
 		
         switch(goal->request){
             case 1:
-                objectPicked = pickTutorial(group, goal->detections, goal->id);
+                objectPicked = pickTutorial(goal->detections, goal->id);
                 if (objectPicked){
                     result_.objectPicked = objectPicked;
                     as_.setSucceeded(result_);
@@ -313,7 +318,7 @@ public:
                 }
                 break;
             case 2:
-                objectPlaced = placeObject(group, goal->detections);
+                objectPlaced = placeObject(goal->detections);
                 if (objectPlaced){
                     result_.objectPlaced = objectPlaced;
                     as_.setSucceeded(result_);
