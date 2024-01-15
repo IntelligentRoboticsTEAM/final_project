@@ -53,7 +53,7 @@ public:
                 break;
             case 2:
                 //2nd waypoint
-                navigateRobotToGoal(8.40, -4.2, 0.0, 90.0);
+                navigateRobotToGoal(8.40, -4.1, 0.0, -90.0);
                 //final position for ID 2
                 executionDone = navigateRobotToGoal(7.50, -4.00, 0.0, 70.0);
                 break;

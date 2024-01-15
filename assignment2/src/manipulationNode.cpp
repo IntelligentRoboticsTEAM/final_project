@@ -14,6 +14,8 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/LinearMath/Quaternion.h>
+
 
 // Our headers
 #include <assignment2/ArmAction.h>
@@ -153,14 +155,14 @@ public:
 				
 				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
 				primitive.dimensions.resize(2);
-				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755 + 0.05;  // height
-				primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.01;  // radius
+				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755 + 0.1;  // height
+				primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.02;  // radius
 				
 				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
 				
 				object_pose.position.x = detections[i].pose.pose.pose.position.x;
 				object_pose.position.y = detections[i].pose.pose.pose.position.y;
-				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
+				object_pose.position.z = detections[i].pose.pose.pose.position.z - 0.1;// - primitive.dimensions[0] / 2;
 				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
@@ -186,21 +188,23 @@ public:
 		  	detection_index++;
 		}
     	
-    	// Creating PoseStamped approach pose 
+    	// Creating PoseStamped approach/depart pose 
         geometry_msgs::PoseStamped appro_pose;
         appro_pose.header.frame_id = "odom";
         appro_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         appro_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
         appro_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.20;   
-    	appro_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
-    	
-    	geometry_msgs::PoseStamped appro_pose_1;
-    	
-    	/*
-    	ROS_INFO("Object to be picked id: %d", detections[detection_index].id[0]);
-		ROS_INFO("appro_position: %f \t %f \t %f", appro_pose.pose.position.x, appro_pose.pose.position.y, appro_pose.pose.position.z);
-		ROS_INFO("appro_orientation: %f \t %f \t %f \t %f", appro_pose.pose.orientation.x, appro_pose.pose.orientation.y, appro_pose.pose.orientation.z, appro_pose.pose.orientation.w);
-		*/
+    	//appro_pose.pose.orientation.x = detections[detection_index].pose.pose.pose.orientation.x;
+    	//appro_pose.pose.orientation.y = detections[detection_index].pose.pose.pose.orientation.y;
+    	//appro_pose.pose.orientation.z = detections[detection_index].pose.pose.pose.orientation.z;
+		//ROS_INFO("appro_orientation: %f \t %f \t %f \t %f", appro_pose.pose.orientation.x, appro_pose.pose.orientation.y, appro_pose.pose.orientation.z, appro_pose.pose.orientation.w);    	
+
+		tf2::Quaternion myQuaternion;
+		myQuaternion.setEuler(0, 90, 0);
+    	myQuaternion.normalize();
+	    appro_pose.pose.orientation = tf2::toMsg(myQuaternion);
+
+    	//geometry_msgs::PoseStamped appro_pose_1;
         
 		// Creating PoseStamped goal pose 
         geometry_msgs::PoseStamped goal_pose;
@@ -241,7 +245,7 @@ public:
 		else		
 	    	ROS_INFO_STREAM("Motion to appro_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
 		
-		
+		/*
 		//define and convert the waypoint to goc back in the space according to object orientation
 		try
 		{
@@ -253,7 +257,7 @@ public:
 		{
 		    ROS_ERROR("Failed to transform point to /gripper_grasping_frame: %s", ex.what());
 		    return 1;
-		} 
+		}
 		
 		appro_pose_1.pose.position.x -= 0.05;
 		 
@@ -280,7 +284,7 @@ public:
 	    	ROS_INFO_STREAM("Motion ended to appro_pose_1, motion duration: " << (ros::Time::now() - start).toSec());
 		
         //spinner.stop();
-
+		*/
         return true;
 
         // feedback_.status = 0;
