@@ -211,12 +211,22 @@ public:
 		// Creating PoseStamped goal pose 
         geometry_msgs::PoseStamped goal_pose;
         goal_pose.header.frame_id = "odom";
-        goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
-        goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        goal_pose.pose.position.z = 0.755 + 0.12; 
-        goal_pose.pose.orientation = appro_pose.pose.orientation;
-
- 
+        
+        switch(detections[detection_index].id[0]){
+        	case 1:
+        		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
+        		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
+        		goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.04; 
+        		goal_pose.pose.orientation = appro_pose.pose.orientation;
+        		break;
+        	default:
+        		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
+        		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
+        		goal_pose.pose.position.z = 0.755 + 0.10; 
+        		goal_pose.pose.orientation = appro_pose.pose.orientation;
+        		break;
+        }
+        
 		// Creating plan for appro
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 	    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
