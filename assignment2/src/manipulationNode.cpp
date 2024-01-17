@@ -196,8 +196,19 @@ public:
         appro_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.20;  
         
           // Original quaternion
-		tf::Quaternion original_quaternion(detections[detection_index].pose.pose.pose.orientation.x, detections[detection_index].pose.pose.pose.orientation.y, detections[detection_index].pose.pose.pose.orientation.z, detections[detection_index].pose.pose.pose.orientation.w);  // Replace with your quaternion values
+		tf2::Quaternion original_quaternion(detections[detection_index].pose.pose.pose.orientation.x, detections[detection_index].pose.pose.pose.orientation.y, detections[detection_index].pose.pose.pose.orientation.z, detections[detection_index].pose.pose.pose.orientation.w);  // Replace with your quaternion values
+		
+		tf2::Matrix3x3 m(original_quaternion);
+		double roll, pitch, yaw;
+		m.getRPY(roll, pitch, yaw);
+		pitch = M_PI / 2;
+		tf2::Quaternion rotation_about_y;
+		rotation_about_y.setRPY(roll, pitch, yaw);
+		rotation_about_y.normalize();
+		appro_pose.pose.orientation = tf2::toMsg(rotation_about_y);
 
+
+		/*
 		// Construct a quaternion representing a 90-degree rotation about the Y-axis
 		tf::Quaternion rotation_about_y;
 		rotation_about_y.setRPY(0.0, M_PI / 2.0, 0.0);  // 90 degrees rotation about Y-axis
@@ -211,7 +222,7 @@ public:
 		geometry_msgs::Quaternion geometry_msgs_quaternion;
     	tf::quaternionTFToMsg(rotated_quaternion, geometry_msgs_quaternion);
 		
-    	appro_pose.pose.orientation = geometry_msgs_quaternion;
+    	appro_pose.pose.orientation = geometry_msgs_quaternion;*/
     	/*
     	tf2::Quaternion q(appro_pose.pose.orientation.x, appro_pose.pose.orientation.y, appro_pose.pose.orientation.z, appro_pose.pose.orientation.w);  // Replace with your quaternion values
 
