@@ -207,47 +207,17 @@ public:
 		rotation_about_y.normalize();
 		appro_pose.pose.orientation = tf2::toMsg(rotation_about_y);
 
-
-		/*
-		// Construct a quaternion representing a 90-degree rotation about the Y-axis
-		tf::Quaternion rotation_about_y;
-		rotation_about_y.setRPY(0.0, M_PI / 2.0, 0.0);  // 90 degrees rotation about Y-axis
-
-		// Multiply the original quaternion by the rotation quaternion
-		tf::Quaternion rotated_quaternion = rotation_about_y * original_quaternion;
-
-		// Normalize the result to ensure it remains a unit quaternion
-		rotated_quaternion.normalize();
-		
-		geometry_msgs::Quaternion geometry_msgs_quaternion;
-    	tf::quaternionTFToMsg(rotated_quaternion, geometry_msgs_quaternion);
-		
-    	appro_pose.pose.orientation = geometry_msgs_quaternion;*/
-    	/*
-    	tf2::Quaternion q(appro_pose.pose.orientation.x, appro_pose.pose.orientation.y, appro_pose.pose.orientation.z, appro_pose.pose.orientation.w);  // Replace with your quaternion values
-
-		// Convert quaternion to RPY
-		tf2::Matrix3x3 m(q);
-		double roll, pitch, yaw;
-		m.getRPY(roll, pitch, yaw);
-
-		// Print the RPY angles
-		ROS_INFO("appro_pose: Roll: %.2f, Pitch: %.2f, Yaw: %.2f\nwith respect to odom", roll, pitch, yaw);
-    	*/
-		//ROS_INFO("appro_orientation: %f \t %f \t %f \t %f", appro_pose.pose.orientation.x, appro_pose.pose.orientation.y, appro_pose.pose.orientation.z, appro_pose.pose.orientation.w);    	
-
-    	//geometry_msgs::PoseStamped appro_pose_1;
         
 		// Creating PoseStamped goal pose 
         geometry_msgs::PoseStamped goal_pose;
         goal_pose.header.frame_id = "odom";
         goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z - (detections[detection_index].pose.pose.pose.position.z - 0.755) / 2; 
-        goal_pose.pose.orientation = detections[detection_index].pose.pose.pose.orientation;
+        goal_pose.pose.position.z = 0.755 + 0.12; 
+        goal_pose.pose.orientation = appro_pose.pose.orientation;
 
-  		
-		// Creating plan
+ 
+		// Creating plan for appro
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 	    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 		moveit::planning_interface::MoveGroupInterface group("arm_torso");
@@ -278,6 +248,39 @@ public:
 			else
 				ROS_INFO_STREAM("Motion to appro_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
+		
+		
+		
+		//Creating plan for goal
+	    moveit::planning_interface::MoveGroupInterface::Plan my_plan_goal;
+	    std::vector<std::string> ids;
+	    ids.push_back(std::to_string(detections[detection_index].id[0]));
+		planning_scene_interface.removeCollisionObjects(ids);
+		
+		group.setStartStateToCurrentState();
+		group.setMaxVelocityScalingFactor(1.0);
+	    
+	    group.setPoseTarget(goal_pose, "gripper_grasping_frame"); //appro
+	    //group.setRPYTarget(0, -M_PI/4, 0, "gripper_grasping_frame_Z");
+	    group.setPlanningTime(10.0);
+	    
+	    success = bool(group.plan(my_plan_goal));
+
+	    if(!success)
+	        ROS_ERROR("No plan found for goal_pose");
+		else{
+	    	ROS_INFO_STREAM("Plan found for goal_pose in " << my_plan_goal.planning_time_ << " seconds");
+	    
+			ros::Time start = ros::Time::now();
+
+			// Execute the Movement
+			moveit::core::MoveItErrorCode e = group.move();
+			if (!bool(e))
+			    ROS_ERROR("Error executing plan goal_pose");
+			else
+				ROS_INFO_STREAM("Motion to goal_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
+		}
+		
 		
         return true;
 
