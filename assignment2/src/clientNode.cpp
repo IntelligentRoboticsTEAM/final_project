@@ -95,20 +95,26 @@ int main(int argc, char **argv) {
     //////// ------ ////////
     
     actionlib::SimpleActionClient<assignment2::PoseAction> acNavigation("poseRevisited", true);
-    ROS_INFO("Waiting for action server to start.");
+    ROS_INFO("Waiting 5 seconds for action server to start...");
     
     if (!acNavigation.waitForServer(ros::Duration(5.0))) { // Wait for 5 seconds
-        ROS_ERROR("Action server not available");
+        ROS_ERROR("Action server not available after 5 seconds");
+        ros::shutdown();
         return 1;
-    }
-    ROS_INFO("Action server started.");
-
+    }else{
+    	ROS_INFO("Action server started.");
+	}
+	
+	//create goal for navigation 
     assignment2::PoseGoal goal;
     goal.id = object_order[0];
-    acNavigation.sendGoal(goal, NULL, NULL, &feedbackNavigation); 
+    
+    //send goal to navigation  
+    acNavigation.sendGoal(goal, NULL, NULL, &feedbackNavigation);
+    //define a timeout to reaching goal
     bool finished_before_timeout = acNavigation.waitForResult(ros::Duration(60.0));
     
-    if (finished_before_timeout) {
+    if (finished_before_timeout){
         actionlib::SimpleClientGoalState state = acNavigation.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
@@ -121,32 +127,66 @@ int main(int argc, char **argv) {
     }
 
     //////// ------ ////////
+    //create detction client
 
     ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
     
+    //construct the service request
     assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
     detection_srv.request.requested_id = object_order[0];
-   	bool flag = false;
+   	
+   	//create manipulation goal and client
 	assignment2::ArmGoal armGoal;
 	actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
 	std::vector<apriltag_ros::AprilTagDetection> detectionsObj;
 	
+	//if the service call was successful
     if(detection_client.call(detection_srv)){
         ROS_INFO("Detection done, tag id returned in base_footprint reference frame");
         
+        //construct goal for manipulation node
         armGoal.request = 1; // PICK action is called
         armGoal.id = object_order[0];
         detectionsObj = detection_srv.response.detections;  
         armGoal.detections = detectionsObj;
-      	flag = true;
+      	
+      	acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
+		
+		bool manipulation_finished_before_timeout = acManipulation.waitForResult(ros::Duration(60.0));
+    
+		if (finished_before_timeout) {
+		    actionlib::SimpleClientGoalState state = acManipulation.getState();
+		    ROS_INFO("Action finished: %s", state.toString().c_str());
+		    if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+		        const auto& result = *acNavigation.getResult();        
+		    }
+		} else {
+		    ROS_INFO("Manipulation action did not finish before the timeout.");
+		    acManipulation.cancelGoal();
+		    ROS_INFO("Manipulation goal has been cancelled");
+		}
+      	
+    }else{
+    	ROS_ERROR("Detection service failed");
+    	ros::shutdown();
+		return 1;
     }
     
-    if(flag){
-		acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
-	}else{
-		ROS_ERROR("Manipulation not working, ERROR IN CLIENT");
-	}
+  	//move to place room
+	
+	//call image_node etc, returns cylinder positions
+	
+	//move in front of correct cylinder
+	
+	//place
+    std::vector<apriltag_ros::AprilTagDetection> place_positions; 
+    //popolare l'oggetto APrilTagDetection con le posizioni dei place_table
+    //place_positions.pose.pose.pose = ;
+    //aManicpulation.sendGoal()
+    
+    //return to home
+    
     
     return 0;
 }
