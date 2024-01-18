@@ -46,7 +46,7 @@ public:
     
     ~ArmAction(void){}
     
-    void addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, std::vector<apriltag_ros::AprilTagDetection> detections)
+     moveit_msgs::CollisionObject addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, std::vector<apriltag_ros::AprilTagDetection> detections)
 	{
 	  std::vector<moveit_msgs::CollisionObject> collision_objects;
 
@@ -79,7 +79,9 @@ public:
 	  table_object.primitive_poses.push_back(table_pose); //map
 	
 	  collision_objects.push_back(table_object);
-
+		
+	  moveit_msgs::CollisionObject return_object;
+	  
 	  for(int i = 0; i < detections.size(); i++)
 	  {
 
@@ -106,6 +108,8 @@ public:
 		
 				obstacle_object.operation = 0; //ADD
 				
+				return_object = obstacle_object;
+				
 				break;
 			case 2: //da rivedere perche ha una forma strana
 				obstacle_object.id = std::to_string(detections[i].id[0]);
@@ -125,6 +129,8 @@ public:
 				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
+				
+				return_object = obstacle_object;
 				
 				break;
 				
@@ -147,6 +153,8 @@ public:
 				
 				obstacle_object.operation = 0; //ADD
 				
+				return_object = obstacle_object;
+				
 				break;
 				
 			default:
@@ -166,6 +174,7 @@ public:
 				object_pose.orientation = detections[i].pose.pose.pose.orientation;
 				
 				obstacle_object.operation = 0; //ADD
+				
 				break;
 		}
 		
@@ -177,17 +186,19 @@ public:
 	  }
 	  
 	  planning_scene_interface.applyCollisionObjects(collision_objects);
+	  
+	  return return_object;
 	}
 
 	
     bool pickTutorial(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
-    
-		
+    	
 		int detection_index = 0;
 		  while(detections[detection_index].id[0] != requestedID){
 		  	detection_index++;
 		}
-    	
+		
+		    	
     	// Creating PoseStamped approach/depart pose 
         geometry_msgs::PoseStamped appro_pose;
         appro_pose.header.frame_id = "odom";
@@ -222,7 +233,7 @@ public:
         	default:
         		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        		goal_pose.pose.position.z = 0.755 + 0.10; 
+        		goal_pose.pose.position.z = 0.755 + 0.13; 
         		goal_pose.pose.orientation = appro_pose.pose.orientation;
         		break;
         }
@@ -230,19 +241,24 @@ public:
 		// Creating plan for appro
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 	    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-		moveit::planning_interface::MoveGroupInterface group("arm_torso");
+		moveit::planning_interface::MoveGroupInterface arm_group("arm_torso");
+		
+		//Getting initial pose for the end_effector 
+		std::vector<double> home_joint_values;
+		home_joint_values = arm_group.getCurrentJointValues();
+		
+		//add ollision objects to make tiago avoid them while reaching appro_pose
 		addCollisionObjects(planning_scene_interface, detections);
 		
-		group.setPlannerId("SBLkConfigDefault");
-		//group.setPoseReferenceFrame("odom");
-		group.setStartStateToCurrentState();
-		group.setMaxVelocityScalingFactor(1.0);
+		arm_group.setPlannerId("SBLkConfigDefault");
+		arm_group.setStartStateToCurrentState();
+		arm_group.setMaxVelocityScalingFactor(1.0);
 	    
-	    group.setPoseTarget(appro_pose, "gripper_grasping_frame"); //appro
-	    //group.setRPYTarget(0, -M_PI/4, 0, "gripper_grasping_frame_Z");
-	    group.setPlanningTime(10.0);
+	    arm_group.setPoseTarget(appro_pose, "gripper_grasping_frame"); //appro
+	    //arm_group.setRPYTarget(0, -M_PI/4, 0, "gripper_grasping_frame_Z");
+	    arm_group.setPlanningTime(7.0);
 	    
-	    bool success = bool(group.plan(my_plan));
+	    bool success = bool(arm_group.plan(my_plan));
 
 	    if(!success)
 	        ROS_ERROR("No plan found for appro_pose");
@@ -252,7 +268,7 @@ public:
 			ros::Time start = ros::Time::now();
 
 			// Execute the Movement
-			moveit::core::MoveItErrorCode e = group.move();
+			moveit::core::MoveItErrorCode e = arm_group.move();
 			if (!bool(e))
 			    ROS_ERROR("Error executing plan appro_pose");
 			else
@@ -263,18 +279,18 @@ public:
 		
 		//Creating plan for goal
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan_goal;
+	    
 	    std::vector<std::string> ids;
 	    ids.push_back(std::to_string(detections[detection_index].id[0]));
 		planning_scene_interface.removeCollisionObjects(ids);
 		
-		group.setStartStateToCurrentState();
-		group.setMaxVelocityScalingFactor(1.0);
+		arm_group.setStartStateToCurrentState();
+		arm_group.setMaxVelocityScalingFactor(1.0);
 	    
-	    group.setPoseTarget(goal_pose, "gripper_grasping_frame"); //appro
-	    //group.setRPYTarget(0, -M_PI/4, 0, "gripper_grasping_frame_Z");
-	    group.setPlanningTime(10.0);
+	    arm_group.setPoseTarget(goal_pose, "gripper_grasping_frame"); //appro
+	    arm_group.setPlanningTime(5.0);
 	    
-	    success = bool(group.plan(my_plan_goal));
+	    success = bool(arm_group.plan(my_plan_goal));
 
 	    if(!success)
 	        ROS_ERROR("No plan found for goal_pose");
@@ -284,7 +300,7 @@ public:
 			ros::Time start = ros::Time::now();
 
 			// Execute the Movement
-			moveit::core::MoveItErrorCode e = group.move();
+			moveit::core::MoveItErrorCode e = arm_group.move();
 			if (!bool(e))
 			    ROS_ERROR("Error executing plan goal_pose");
 			else
@@ -292,6 +308,104 @@ public:
 		}
 		
 		
+		
+		//close the gripper 
+		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
+		moveit::planning_interface::MoveGroupInterface gripper_group("gripper");
+		
+		gripper_group.setStartStateToCurrentState();
+		gripper_group.setPlanningTime(2.0);
+		
+		std::vector<double> close_gripper_values;
+		close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
+		close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
+		gripper_group.setJointValueTarget(close_gripper_values);
+		
+    	success = bool(gripper_group.plan(gripper_plan));
+
+	    if(!success)
+	        ROS_ERROR("No plan found for closing gripper");
+		else{
+	    	ROS_INFO_STREAM("Plan found for closing gripper in " << my_plan_goal.planning_time_ << " seconds");
+	    
+			ros::Time start = ros::Time::now();
+
+			// Execute the Movement
+			moveit::core::MoveItErrorCode e = gripper_group.move();
+			if (!bool(e))
+			    ROS_ERROR("Error executing plan closing gripper");
+			else
+				ROS_INFO_STREAM("Motion to closing gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
+		}
+		
+		
+		switch(detections[detection_index].id[0]){
+			case 1:
+				gripper_group.attachObject("Hexagon", "gripper_grasping_frame");
+				break;
+			case 2:
+				gripper_group.attachObject("Triangle", "gripper_grasping_frame");
+				break;
+			case 3:
+				gripper_group.attachObject("cube", "gripper_grasping_frame");
+    			break;
+    		default:
+    			ROS_ERROR("received object id to be attached represents an obstacle object");
+    			return false;
+    	}
+    	
+    	
+    	moveit::planning_interface::MoveGroupInterface::Plan my_plan_appro;
+		
+		arm_group.setPlannerId("SBLkConfigDefault");
+		arm_group.setStartStateToCurrentState();
+		arm_group.setMaxVelocityScalingFactor(1.0);
+	    
+	    arm_group.setPoseTarget(appro_pose, "gripper_grasping_frame"); //appro
+	    arm_group.setPlanningTime(7.0);
+	    
+	    success = bool(arm_group.plan(my_plan_appro));
+
+	    if(!success)
+	        ROS_ERROR("No plan found for departs");
+		else{
+	    	ROS_INFO_STREAM("Plan found for departs in " << my_plan_appro.planning_time_ << " seconds");
+	    
+			ros::Time start = ros::Time::now();
+
+			// Execute the Movement
+			moveit::core::MoveItErrorCode e = arm_group.move();
+			if (!bool(e))
+			    ROS_ERROR("Error executing plan departs");
+			else
+				ROS_INFO_STREAM("Motion to departs ended, motion duration: " << (ros::Time::now() - start).toSec());
+		}
+		
+		moveit::planning_interface::MoveGroupInterface::Plan home_plan;
+		
+		arm_group.setStartStateToCurrentState();
+		arm_group.setPlanningTime(2.0);
+		
+		arm_group.setJointValueTarget(home_joint_values);
+		
+    	success = bool(gripper_group.plan(home_plan));
+
+	    if(!success)
+	        ROS_ERROR("No plan found for closing gripper");
+		else{
+	    	ROS_INFO_STREAM("Plan found to return to home configuration in " << home_plan.planning_time_ << " seconds");
+	    
+			ros::Time start = ros::Time::now();
+
+			// Execute the Movement
+			moveit::core::MoveItErrorCode e = arm_group.move();
+			if (!bool(e))
+			    ROS_ERROR("Error executing plan return to home configuration");
+			else
+				ROS_INFO_STREAM("Motion to return to home configuration ended, motion duration: " << (ros::Time::now() - start).toSec());
+		}
+    	
+        
         return true;
 
         // feedback_.status = 0;
@@ -300,6 +414,24 @@ public:
         // feedback_.status = 1;
         // as_.publishFeedback(feedback_);
     }
+    /*
+    bool pick(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
+    	
+    	int detection_index = 0;
+		  while(detections[detection_index].id[0] != requestedID){
+		  	detection_index++;
+		}
+		
+		moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+		moveit::planning_interface::MoveGroupInterface gripper_group("gripper");
+		
+		moveit_msgs::CollisionObject object_to_be_picked = addCollisionObjects(planning_scene_interface, detections);
+		
+		gripper_group.planGraspsAndPick(object_to_be_picked);
+		
+		return true;
+    }
+    */
 
     bool placeObject(std::vector<apriltag_ros::AprilTagDetection> detections){
 
