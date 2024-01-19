@@ -62,8 +62,11 @@ std::vector<int> findColorOrder(const cv::Mat &img) {
 
 
 bool resultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){
+	ROS_INFO("Inside resultCB, before findcolororder");
 	std::vector<int> colorOrder = findColorOrder(img);
+	ROS_INFO("Inside resultCB, after findcolororder");
     res.ids_associated_colors = colorOrder;
+    ROS_INFO("Inside resultCB, response population");
     if(colorOrder.size() > 0)
     	return true;
     else
@@ -91,12 +94,15 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 
 
 int main(int argc, char** argv) {
+    
     ros::init(argc, argv, "image_colors_node");
+    
     ros::NodeHandle n;
     
     cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
     
     ros::ServiceServer service = n.advertiseService("/image_colors_node", resultCB);
+	
 	cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
 	
 	image_transport::ImageTransport it(n);

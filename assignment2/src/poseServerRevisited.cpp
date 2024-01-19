@@ -9,7 +9,7 @@
 /**
  * @brief Defines a class for handling pose actions.
  */
-class PoseAction {
+class PoseAction{
 protected:
     ros::NodeHandle nh_;
     actionlib::SimpleActionServer<assignment2::PoseAction> as_;
@@ -35,14 +35,12 @@ public:
 		        return navigateRobotToGoal(8.15, -2.1, 0.0, -110.0);
 		    case 2:
 		        // 2nd waypoint
-		        navigateRobotToGoal(8.40, -4.2, 0.0, 90.0);
+		        navigateRobotToGoal(8.40, -4.2, 0.0, 180.0);
 		        // Final position for GREEN
 		        return navigateRobotToGoal(7.50, -4.00, 0.0, 70.0);
 		    case 3:
-		        // 2nd waypoint
-		        navigateRobotToGoal(7.3, -1.7, 0.0, 0.0);
 		        // Final position for RED
-		        return navigateRobotToGoal(6.35, -2.72, 0.0, -50.0);
+		        return navigateRobotToGoal(7.20, -2.1, 0.0, -50.0);
 		    default:
 		        ROS_ERROR("Error on selecting object ordering");
 		        return false;
@@ -50,16 +48,10 @@ public:
     }
 
     bool goToScanPosition(int id) {
-        if (id == 1) {
+        if (id == 1 || id == 3) {
             feedback_.status = 5;
             as_.publishFeedback(feedback_);
-            navigateRobotToGoal(8.4, -2.0, 0.0, 0.0);
-        }
-
-        if (id == 3) {
-            feedback_.status = 5;
-            as_.publishFeedback(feedback_);
-            navigateRobotToGoal(6.5, -4.3, 0.0, 0.0);
+            navigateRobotToGoal(8.4, -2.2, 0.0, 0.0);
         }
 
         // 2nd Waypoint to look at the cylinders from the center
@@ -86,9 +78,9 @@ public:
      * @param goal The goal for the pose action.
      */
     void executeCB(const assignment2::PoseGoalConstPtr &goal) {
-        // Initializing data for goalPosition
-        // int id = goal->id;
-        int id = 1;
+        
+        //Initializing data for goalPosition
+        int id = goal->id;
 
         feedback_.status = 0;
         as_.publishFeedback(feedback_);
@@ -98,7 +90,7 @@ public:
         switch (goal->operation) 
         {        
             case 1:
-                ROS_INFO("Operation 1, reaching the table");
+                ROS_INFO("Operation 1, reaching the table passing through home position");
                 feedback_.status = 1;
                 as_.publishFeedback(feedback_);
                 
@@ -111,25 +103,25 @@ public:
                 break;
 
             case 2:
-                ROS_INFO("Operation 2, reaching the cylinders");
+                ROS_INFO("Operation 2, reaching the scan position");
                 executionDone = goToScanPosition(id);
                 break;
                 
             case 3:
-            	ROS_INFO("Operation 3, reaching the PLACE position");
+            	ROS_INFO("Operation 3, reaching the place position");
 
 				pose = goal->detection.pose.pose.pose;
             	executionDone = goToCylinder(pose);
             	break;
        
        		case 4:
-       		   	ROS_INFO("Operation 4, reaching the HOME");
+       		   	ROS_INFO("Operation 4, reaching home position");
        			executionDone = goToHome();
                 break;
 
 
             default:
-                ROS_ERROR("Operation not available");
+                ROS_ERROR("Error while passing navigation operation (table, scan, cylinder, home)");
                 break;
         }
 

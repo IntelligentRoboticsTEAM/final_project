@@ -191,7 +191,7 @@ public:
 	}
 
 	
-    bool pickTutorial(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
+    bool pick(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
     	
 		int detection_index = 0;
 		  while(detections[detection_index].id[0] != requestedID){
@@ -359,16 +359,16 @@ public:
 
 		switch(detections[detection_index].id[0]){
 			case 1:
-				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.015);
-				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.015);
+				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.01);
+				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.01);
 				break;
 			case 2:
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.01);
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.01);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
 				break;
 			case 3:
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.01);
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.01);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
     			break;
     		default:
     			ROS_ERROR("received object id to be attached represents an obstacle object");
@@ -501,7 +501,7 @@ public:
     }
     
 
-    bool placeObject(std::vector<apriltag_ros::AprilTagDetection> detections){
+    bool place(std::vector<apriltag_ros::AprilTagDetection> detections){
 		
         geometry_msgs::PoseStamped place_pose;
         place_pose.header.frame_id = "odom";
@@ -676,7 +676,7 @@ public:
 		
         switch(goal->request){
             case 1:
-                objectPicked = pickTutorial(goal->detections, goal->id);
+                objectPicked = pick(goal->detections, goal->id);
                 if (objectPicked){
                     result_.objectPicked = objectPicked;
                     as_.setSucceeded(result_);
@@ -686,7 +686,7 @@ public:
                 }
                 break;
             case 2:
-                objectPlaced = placeObject(goal->detections);
+                objectPlaced = place(goal->detections);
                 if (objectPlaced){
                     result_.objectPlaced = objectPlaced;
                     as_.setSucceeded(result_);

@@ -17,7 +17,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 
-
+/*
 ros::Time latestImageStamp;
 
 // ROS call back for every new image received
@@ -31,8 +31,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 	cv::imshow("Inside of TIAGo's head", cvImgPtr->image);
 	cv::waitKey(15);
 }
+*/
 
-bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
+bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
 
 	ROS_INFO("Incoming request: %s", req.ready ? "true" : "false");
 	
@@ -50,21 +51,25 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	    ROS_ERROR("Error in create PointHeadClient: head controller action server not available");
 
 	//Get camera info from correct topic
-	sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/xtion/rgb/camera_info", ros::Duration(10.0));
+	//sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/xtion/rgb/camera_info", ros::Duration(10.0));
 	
 	
-	//define a target point to make tiago point at
-	geometry_msgs::PointStamped pointStamped; 
+	//define a target point to make tiago point at (center of table to detect tags)
+	geometry_msgs::PointStamped pointDown; 
+	pointDown.header.frame_id = "/xtion_rgb_optical_frame"; 
+	//pointStamped.header.stamp = latestImageStamp;
+	pointDown.point.x = 0.00;
+	pointDown.point.y = 0.80;
+	pointDown.point.z = 1.00;  
 	
-	pointStamped.header.frame_id = "/xtion_rgb_optical_frame"; 
-	pointStamped.header.stamp = latestImageStamp;
-	pointStamped.point.x = 0.00;
-	pointStamped.point.y = 0.80;
-	pointStamped.point.z = 1.00;  
+	//define a target point to make tiago point at (in front of him to the next cylinder detection)
+	geometry_msgs::PointStamped pointUp; 
+	pointUp.header.frame_id = "/xtion_rgb_optical_frame"; 
+	//pointStamped.header.stamp = latestImageStamp;
+	pointUp.point.x = 0.00;
+	pointUp.point.y = -0.60;
+	pointUp.point.z = 1.00;  
 	
-
-	ROS_INFO("X: %f, Y: %f, Z: %f", (float)pointStamped.point.x, (float)pointStamped.point.y, (float)pointStamped.point.z);
-
 	//the goal consists in making the Z axis of the cameraFrame to point towards the pointStamped
 	control_msgs::PointHeadGoal goal;
 	
@@ -74,7 +79,7 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 	goal.pointing_axis.z = 1.0;
 	goal.min_duration = ros::Duration(1.0);
 	goal.max_velocity = 0.25;
-	goal.target = pointStamped;
+	goal.target = pointDown;
 
 	pointHeadClient.sendGoal(goal);
 	
@@ -85,16 +90,15 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
         actionlib::SimpleClientGoalState state = pointHeadClient.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
         if(state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-            ROS_INFO("I'm pointing to the given point");  
+            ROS_INFO("Point down to the table");  
         }
     }else{
-        ROS_INFO("Pointing did not finish before the timeout.");
+        ROS_INFO("Point down did not finish before the timeout.");
         pointHeadClient.cancelGoal();
-        ROS_INFO("Pointing goal has been cancelled");
+        ROS_INFO("Point down goal has been cancelled");
     }
 	
 	apriltag_ros::AprilTagDetectionArray::ConstPtr apriltag_msg = ros::topic::waitForMessage<apriltag_ros::AprilTagDetectionArray>("/tag_detections", ros::Duration(10.0));
-	
 	
 	geometry_msgs::PoseWithCovarianceStamped poseCovarianceStamped;
 	geometry_msgs::PoseWithCovariance poseCovariance;
@@ -146,6 +150,31 @@ bool lookToPoint(assignment2::Detection::Request &req, assignment2::Detection::R
 
 	}
 	
+	//make tiago point in up again
+	goal.pointing_frame = "/xtion_rgb_optical_frame";
+	goal.pointing_axis.x = 0.0;
+	goal.pointing_axis.y = 0.0;
+	goal.pointing_axis.z = 1.0;
+	goal.min_duration = ros::Duration(1.0);
+	goal.max_velocity = 0.25;
+	goal.target = pointUp;
+
+	pointHeadClient.sendGoal(goal);
+	
+	finished_before_timeout = pointHeadClient.waitForResult(ros::Duration(20.0));
+ 
+	//print result
+    if(finished_before_timeout) {
+        actionlib::SimpleClientGoalState state = pointHeadClient.getState();
+        if(state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+            ROS_INFO("Point up");  
+        }
+    }else{
+        ROS_INFO("Point up did not finish before the timeout.");
+        pointHeadClient.cancelGoal();
+        ROS_INFO("Point up goal has been cancelled");
+    }
+    
 	res.detections = transformed_detections;
 	return true;
 }
@@ -165,8 +194,9 @@ int main(int argc, char** argv)
   	
 	ROS_INFO("Starting QR pose detection application ...");
 	
-	ros::ServiceServer service = n.advertiseService("/object_detection", lookToPoint);
-
+	ros::ServiceServer service = n.advertiseService("/object_detection", detectTags);
+	
+	/*
 	// Create the window to show TIAGo's camera images
 	cv::namedWindow("Inside of TIAGo's head", cv::WINDOW_AUTOSIZE);
 	
@@ -179,6 +209,7 @@ int main(int argc, char** argv)
 	image_transport::Subscriber subToImage = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
 
 	cv::destroyWindow("Inside of TIAGo's head");
+	*/
 	
 	ros::spin();
 	

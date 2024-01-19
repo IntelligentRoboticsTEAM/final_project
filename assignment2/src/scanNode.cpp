@@ -41,21 +41,48 @@ bool scanCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){
 	std::vector<geometry_msgs::Pose> poses;
 	
 	float th_x = 0.7;
-	float th_y = 0.2; 	// PRIMA 0.7
+	float th_y = 0.5; 	// PRIMA 0.7
 	
 	std::vector<CartesianCoordinates> cartesianRanges = convertRanges(ranges, angle_min, angle_increment);
 	std::vector<std::vector<CartesianCoordinates>> cartesianRangesClusters = clusterRanges(cartesianRanges, th_x, th_y);
 	poses = findCylinders(cartesianRangesClusters, angle_min, angle_increment);
 	
+	std::vector<geometry_msgs::Pose> return_vec;
 	
-	for(int i=0; i< poses.size(); i++){
-		ROS_INFO("Poses[%d] = x: %f, y: %f", i, poses[i].position.x, poses[i].position.y);
+	for(int i = 0; i< poses.size(); i++){
+		ROS_INFO("Poses[%d] in /base_laser_link= x: %f, y: %f, z: %f", i, poses[i].position.x, poses[i].position.y, poses[i].position.x);
+		
+		//convert poses in odom
+		geometry_msgs::PoseStamped in_out_point;
+		in_out_point.header.frame_id = "base_laser_link"; //da rivedere
+		in_out_point.pose = poses[i];
+		in_out_point.pose.orientation.x = 0.0;
+		in_out_point.pose.orientation.y = 0.0;
+		in_out_point.pose.orientation.z = 1.0;
+		in_out_point.pose.orientation.w = 0.0;
+		
+		try
+		{
+			tf::TransformListener tfListener;
+			tfListener.waitForTransform("/base_laser_link", "/odom", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/odom", in_out_point, in_out_point);
+		}
+		catch (tf::TransformException& ex)
+		{
+			ROS_ERROR("Failed to transform point to /odom: %s", ex.what());
+			return 1;
+		}
+		
+		ROS_INFO("Poses[%d] in /odom = x: %f, y: %f, z: %f", i, in_out_point.pose.position.x, in_out_point.pose.position.y, in_out_point.pose.position.x);
+		
+		return_vec.push_back(in_out_point.pose);
 	}
 	
-	res.poses = poses;
+	 
+	res.poses = return_vec;
 	
-	// To associate the colors I need OpenCV
-	// res.ids_associated_colors = ids_associated_colors;
+	
+	//res.poses = poses;
 	
 	return true;
 }

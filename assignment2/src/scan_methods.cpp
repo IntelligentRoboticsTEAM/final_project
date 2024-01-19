@@ -8,14 +8,14 @@
  * @param angle_min 		Starting angle for the scan, given by /scan topic
  * @param angle_increment 	Increment in the angle, given by /scan topic
  */
-std::vector<CartesianCoordinates> convertRanges (const std::vector<float>& ranges, float angle_min, float angle_increment)
+std::vector<CartesianCoordinates> convertRanges(const std::vector<float>& ranges, float angle_min, float angle_increment)
 {
 	ROS_INFO("CONVERT RANGES");
 	std::vector<CartesianCoordinates> resultRanges;
 	
-	 for (int i = 0; i < ranges.size(); i++) 
+	 for(int i = 0; i < ranges.size(); i++) 
 	 {
-	 	CartesianCoordinates currCord = polarToCartesian(ranges[i], angle_min + angle_increment * i);
+	 	CartesianCoordinates currCord = polarToCartesian(ranges[i], angle_min + angle_increment * i); //0
 	 	resultRanges.push_back(currCord);
 	 }
 	 
@@ -101,7 +101,7 @@ std::vector<geometry_msgs::Pose> findCylinders(const std::vector<std::vector<Car
 		std::vector<CartesianCoordinates> currentRange = rangeClusters[i];	
 		geometry_msgs::Pose pp;
 		
-		if(step_sizes[i] > 0 || currentRange.size() < 30 || currentRange.size() > 120 ) 
+		if(step_sizes[i] > 0 || currentRange.size() < 30 || currentRange.size() > 50) 
 		{
 			ROS_INFO("IF -- Cluster %d, Size = %ld", i, currentRange.size());
 			angle_counter += currentRange.size();
