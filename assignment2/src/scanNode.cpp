@@ -23,8 +23,8 @@
 
 // Our libraries
 #include <assignment2/Scan.h>  
-#include "scan_methods.h"
-#include "utils.h"
+#include "headers/scan_methods.h"
+#include "headers/utils.h"
 
 
 bool scanCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){

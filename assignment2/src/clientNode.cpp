@@ -6,8 +6,8 @@
 #include <assignment2/Scan.h> 
 #include <geometry_msgs/Pose.h>
 #include <tiago_iaslab_simulation/Objs.h>
-#include "utils.h"
-#include "navigation_methods.h"
+#include "headers/utils.h"
+#include "headers/navigation_methods.h"
 
 
 /**

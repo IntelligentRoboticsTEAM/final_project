@@ -3,7 +3,7 @@
 #include <assignment2/PoseAction.h>
 #include <sensor_msgs/LaserScan.h>
 #include <ros/topic.h>
-#include "navigation_methods.h"
+#include "headers/navigation_methods.h"
 #include <geometry_msgs/Pose.h>
 #include <apriltag_ros/AprilTagDetection.h>
 /**

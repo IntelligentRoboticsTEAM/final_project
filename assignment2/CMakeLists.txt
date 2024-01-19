@@ -125,20 +125,20 @@ include_directories(
 # List of source files for poseServerRevisited
 set(SOURCE_FILES_SERVER_REVISITED
   src/poseServerRevisited.cpp
-  src/navigation_methods.cpp
-  src/utils.cpp  
+  src/utils/navigation_methods.cpp
+  src/utils/utils.cpp  
 )
 # List of source files for clientNode
 set(SOURCE_FILES_CLIENT_NODE
   src/clientNode.cpp
-  src/navigation_methods.cpp
-  src/utils.cpp  
+  src/utils/navigation_methods.cpp
+  src/utils/utils.cpp  
 )
 
 set(SOURCE_FILES_SCAN_NODE
   src/scanNode.cpp 
-  src/utils.cpp 
-  src/scan_methods.cpp
+  src/utils/utils.cpp 
+  src/utils/scan_methods.cpp
 )
 
 
@@ -148,12 +148,12 @@ target_link_libraries(poseServerRevisited ${catkin_LIBRARIES})
 add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
 
 #detectionNode executable
-add_executable(detectionNode src/detectionNode.cpp src/utils.cpp)
+add_executable(detectionNode src/detectionNode.cpp src/utils/utils.cpp)
 target_link_libraries(detectionNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
 
 #manipulationNode executable
-add_executable(manipulationNode src/manipulationNode.cpp src/utils.cpp)
+add_executable(manipulationNode src/manipulationNode.cpp src/utils/utils.cpp)
 target_link_libraries(manipulationNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(manipulationNode ${assignment2_EXPORTED_TARGETS})
 
@@ -162,7 +162,7 @@ add_executable(scanNode ${SOURCE_FILES_SCAN_NODE})
 target_link_libraries(scanNode ${catkin_LIBRARIES})
 add_dependencies(scanNode ${assignment2_EXPORTED_TARGETS})
 
-add_executable(imageScanNode   src/imageScanNode.cpp src/utils.cpp )
+add_executable(imageScanNode   src/imageScanNode.cpp src/utils/utils.cpp )
 target_link_libraries(imageScanNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(imageScanNode ${assignment2_EXPORTED_TARGETS})
 
