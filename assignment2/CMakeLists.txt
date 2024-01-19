@@ -81,6 +81,7 @@ add_message_files(
 add_service_files(
    FILES 
    Detection.srv
+   Scan.srv
 )
 
 
@@ -130,8 +131,16 @@ set(SOURCE_FILES_SERVER_REVISITED
 # List of source files for clientNode
 set(SOURCE_FILES_CLIENT_NODE
   src/clientNode.cpp
+  src/navigation_methods.cpp
   src/utils.cpp  
 )
+
+set(SOURCE_FILES_SCAN_NODE
+  src/scanNode.cpp 
+  src/utils.cpp 
+  src/scan_methods.cpp
+)
+
 
 # poseServerRevisited executable
 add_executable(poseServerRevisited ${SOURCE_FILES_SERVER_REVISITED})
@@ -147,6 +156,15 @@ add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
 add_executable(manipulationNode src/manipulationNode.cpp src/utils.cpp)
 target_link_libraries(manipulationNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(manipulationNode ${assignment2_EXPORTED_TARGETS})
+
+#scanNode executable
+add_executable(scanNode ${SOURCE_FILES_SCAN_NODE})
+target_link_libraries(scanNode ${catkin_LIBRARIES})
+add_dependencies(scanNode ${assignment2_EXPORTED_TARGETS})
+
+add_executable(imageScanNode   src/imageScanNode.cpp src/utils.cpp )
+target_link_libraries(imageScanNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+add_dependencies(imageScanNode ${assignment2_EXPORTED_TARGETS})
 
 
 # clientNode executable
