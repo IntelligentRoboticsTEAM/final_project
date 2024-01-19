@@ -20,10 +20,19 @@ enum class Status {
     ActionEnded = 6
 };
 
+struct CartesianCoordinates {
+    float x;
+    float y;
+};
+
+struct PoseID{
+	CartesianCoordinates pose;
+	int id;
+};
+
 float degreesToRadians(float degrees);
-std::pair<float, float> polarToCartesian(float r, float theta);
+CartesianCoordinates polarToCartesian(float r, float theta);
 std::vector<assignment2::Object> convertToMsgType(const std::vector<Object>& objects);
 std::vector<Object> convertToObjectType(const std::vector<assignment2::Object>& msgObjects);
 
-
-#endif
+#endif // UTILS_H

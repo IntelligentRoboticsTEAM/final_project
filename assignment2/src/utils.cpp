@@ -4,11 +4,10 @@ float degreesToRadians(float degrees) {
     return degrees * (M_PI / 180.0);
 }
 
-std::pair<float, float> polarToCartesian(float r, float theta){
-    float X = r * cos(theta);
-    float Y = r * sin(theta);
-    
-    return std::make_pair(X, Y);
+CartesianCoordinates polarToCartesian(float r, float theta){
+    float x = r * cos(theta);
+    float y = r * sin(theta);
+    return {x, y};
 }
 
 std::vector<assignment2::Object> convertToMsgType(const std::vector<Object>& objects) {

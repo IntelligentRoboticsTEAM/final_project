@@ -3,12 +3,23 @@
 
 #include <vector>
 #include <cmath>
+#include <math.h>
 #include <utility>
+#include <ros/ros.h>
+
 #include "Obstacle.h"
 #include "utils.h"
 
-std::vector<std::vector<float>> clusterRanges(const std::vector<float>& ranges, float th) ;
-std::vector<Obstacle> findObstacles1(const std::vector<std::vector<float>> &rangeClusters, float angle_min, float angle_increment);
+std::vector<std::vector<CartesianCoordinates>> clusterRanges(const std::vector<CartesianCoordinates> &ranges,
+															 float th1, float th2);
+															 
+std::vector<CartesianCoordinates> convertRanges (const std::vector<float> &ranges,
+												float angle_min, float angle_increment);
+					
+std::vector<geometry_msgs::Pose> findCylinders(const std::vector<std::vector<CartesianCoordinates>> &rangeClusters,
+				   								float angle_min, float angle_increment);
+
+// unused
 std::vector<Obstacle> findObstacles2(const std::vector<std::vector<float>> &rangeClusters, float angle_min, float angle_increment);
 std::vector<Obstacle> findObstacles3(const std::vector<std::vector<float>> &rangeClusters, float angle_min, float angle_increment);
 
