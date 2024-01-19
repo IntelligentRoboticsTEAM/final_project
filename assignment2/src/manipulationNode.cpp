@@ -48,146 +48,120 @@ public:
     
      moveit_msgs::CollisionObject addCollisionObjects(moveit::planning_interface::PlanningSceneInterface& planning_scene_interface, std::vector<apriltag_ros::AprilTagDetection> detections)
 	{
-	  std::vector<moveit_msgs::CollisionObject> collision_objects;
+		std::vector<moveit_msgs::CollisionObject> collision_objects;
 
-	  moveit_msgs::CollisionObject table_object;
-	  table_object.id = "table";
-	  table_object.header.frame_id = "odom";
-	  
-	  // Define the shape of the collision object
-	  shape_msgs::SolidPrimitive primitive;
-	  primitive.type = shape_msgs::SolidPrimitive::BOX;
-	  primitive.dimensions.resize(3);
-	  primitive.dimensions[0] = 0.96;  // x dimension
-	  primitive.dimensions[1] = 0.96;  // y dimension
-	  primitive.dimensions[2] = 0.755;  // z dimension
-
-	  // Set the pose of the collision object in the odom frame
-	  geometry_msgs::Pose table_pose;
-	  table_pose.orientation.x = 0.0;
-	  table_pose.orientation.y = 0.0;
-	  table_pose.orientation.z = 1.0;
-	  table_pose.orientation.w = 0.0;  // Quaternion identity
-	  table_pose.position.x = 7.82;
-	  table_pose.position.y = -2.98;
-	  table_pose.position.z = 0.375;
-	  
-	  table_object.operation = 0; //ADD
-	  
-	  // Add the primitive to the collision object
-	  table_object.primitives.push_back(primitive);
-	  table_object.primitive_poses.push_back(table_pose); //map
-	
-	  collision_objects.push_back(table_object);
-	  
-	  moveit_msgs::CollisionObject return_object;
-	  
-	  for(int i = 0; i < detections.size(); i++)
-	  {
-
-		moveit_msgs::CollisionObject obstacle_object;
-		shape_msgs::SolidPrimitive primitive;
-		geometry_msgs::Pose object_pose;
+		// ADDING TABLE COLLISION OBJECT
+		moveit_msgs::CollisionObject table_object;
+		table_object.id = "table";
+		table_object.header.frame_id = "odom";
 		
-		switch((int)detections[i].id[0]){
-			case 1:
-				obstacle_object.id = std::to_string(detections[i].id[0]);
-				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-				obstacle_object.header.frame_id = "odom";
-				
-				primitive.dimensions.resize(2);
-				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755;  // height
-				primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.005;  // radius
-				
-				//ROS_INFO("Z dimension: %f", primitive.dimensions[0]); //height
-				
-				object_pose.position.x = detections[i].pose.pose.pose.position.x;
-				object_pose.position.y = detections[i].pose.pose.pose.position.y;
-				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[0] / 2;
-				object_pose.orientation = detections[i].pose.pose.pose.orientation;
+		// Define the shape of the collision object
+		shape_msgs::SolidPrimitive table_primitive;
+		table_primitive.type = shape_msgs::SolidPrimitive::BOX;
+		table_primitive.dimensions.resize(3);
+		table_primitive.dimensions[0] = 0.96;  // x dimension
+		table_primitive.dimensions[1] = 0.96;  // y dimension
+		table_primitive.dimensions[2] = 0.755;  // z dimension
+
+		// Set the pose of the collision object (odom frame)
+		geometry_msgs::Pose table_pose;
+		table_pose.orientation.x = 0.0;
+		table_pose.orientation.y = 0.0;
+		table_pose.orientation.z = 1.0;
+		table_pose.orientation.w = 0.0;
+		table_pose.position.x = 7.82;
+		table_pose.position.y = -2.98;
+		table_pose.position.z = 0.375;
 		
-				obstacle_object.operation = 0; //ADD
-				
-				return_object = obstacle_object;
-				
-				break;
-			case 2: //da rivedere perche ha una forma strana
-				obstacle_object.id = std::to_string(detections[i].id[0]);
-				obstacle_object.header.frame_id = "odom";
-				
-				primitive.type = shape_msgs::SolidPrimitive::BOX;
-				primitive.dimensions.resize(3);
-				primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
-				primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
-				primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
-				
-				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
-				
-				object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015;
-				object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
-				object_pose.position.z = 0.755;
-				object_pose.orientation = detections[i].pose.pose.pose.orientation;
-				
-				obstacle_object.operation = 0; //ADD
-				
-				return_object = obstacle_object;
-				
-				break;
-				
-			case 3:
-				obstacle_object.id = std::to_string(detections[i].id[0]);				
-				obstacle_object.header.frame_id = "odom";
-				
-				primitive.type = shape_msgs::SolidPrimitive::BOX;
-				primitive.dimensions.resize(3);
-				primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
-				primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
-				primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
-				
-				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
-				
-				object_pose.position.x = detections[i].pose.pose.pose.position.x;
-				object_pose.position.y = detections[i].pose.pose.pose.position.y;
-				object_pose.position.z = detections[i].pose.pose.pose.position.z - primitive.dimensions[2] / 2;
-				object_pose.orientation = detections[i].pose.pose.pose.orientation;
-				
-				obstacle_object.operation = 0; //ADD
-				
-				return_object = obstacle_object;
-				
-				break;
-				
-			default:
-				obstacle_object.id = std::to_string(detections[i].id[0]);				
-				obstacle_object.header.frame_id = "odom";
-				
-				primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-				primitive.dimensions.resize(2);
-				primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755 + 0.1;  // height
-				primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.02;  // radius
-				
-				//ROS_INFO("Z dimension: %f", primitive.dimensions[2]);
-				
-				object_pose.position.x = detections[i].pose.pose.pose.position.x;
-				object_pose.position.y = detections[i].pose.pose.pose.position.y;
-				object_pose.position.z = detections[i].pose.pose.pose.position.z - 0.1;// - primitive.dimensions[0] / 2;
-				object_pose.orientation = detections[i].pose.pose.pose.orientation;
-				
-				obstacle_object.operation = 0; //ADD
-				
-				break;
+		// Add the primitive to the collision object
+		table_object.primitives.push_back(table_primitive);
+		table_object.primitive_poses.push_back(table_pose); //map
+		table_object.operation = table_object.ADD;
+		
+		collision_objects.push_back(table_object);
+		
+		moveit_msgs::CollisionObject return_object;
+		for(int i = 0; i < detections.size(); i++)
+		{
+			moveit_msgs::CollisionObject obstacle_object;
+			shape_msgs::SolidPrimitive obj_primitive;
+			geometry_msgs::Pose object_pose;
+
+			obstacle_object.id = std::to_string(detections[i].id[0]);
+			obstacle_object.header.frame_id = "odom";
+
+			switch((int)detections[i].id[0]){
+				case 1:					
+					obj_primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
+					obj_primitive.dimensions.resize(2);
+					obj_primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755;  // height
+					obj_primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.005;  // radius
+
+					object_pose.position.x = detections[i].pose.pose.pose.position.x;
+					object_pose.position.y = detections[i].pose.pose.pose.position.y;
+					object_pose.position.z = detections[i].pose.pose.pose.position.z - obj_primitive.dimensions[0] / 2;
+					object_pose.orientation = detections[i].pose.pose.pose.orientation;
+			
+					return_object = obstacle_object;
+					
+					break;
+				case 2: //da rivedere perche ha una forma strana					
+					obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
+					obj_primitive.dimensions.resize(3);
+					obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
+					obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
+					obj_primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
+					
+					object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015;
+					object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
+					object_pose.position.z = 0.755;
+					object_pose.orientation = detections[i].pose.pose.pose.orientation;
+					
+					return_object = obstacle_object;
+					
+					break;
+					
+				case 3:					
+					obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
+					obj_primitive.dimensions.resize(3);
+					obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
+					obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
+					obj_primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
+					
+					object_pose.position.x = detections[i].pose.pose.pose.position.x;
+					object_pose.position.y = detections[i].pose.pose.pose.position.y;
+					object_pose.position.z = detections[i].pose.pose.pose.position.z - obj_primitive.dimensions[2] / 2;
+					object_pose.orientation = detections[i].pose.pose.pose.orientation;
+					
+					return_object = obstacle_object;
+					
+					break;
+					
+				default:					
+					obj_primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
+					obj_primitive.dimensions.resize(2);
+					obj_primitive.dimensions[0] = detections[i].pose.pose.pose.position.z - 0.755 + 0.1;  // height
+					obj_primitive.dimensions[1] = sqrt(2*(detections[i].size[0]*detections[i].size[0]))/2 + 0.02;  // radius
+					
+					object_pose.position.x = detections[i].pose.pose.pose.position.x;
+					object_pose.position.y = detections[i].pose.pose.pose.position.y;
+					object_pose.position.z = detections[i].pose.pose.pose.position.z - 0.1;// - primitive.dimensions[0] / 2;
+					object_pose.orientation = detections[i].pose.pose.pose.orientation;
+					
+					break;
+			}
+
+			obstacle_object.operation = obstacle_object.ADD;
+			
+			obstacle_object.primitives.push_back(obj_primitive);
+			obstacle_object.primitive_poses.push_back(object_pose);
+			
+			collision_objects.push_back(obstacle_object);
 		}
 		
-		obstacle_object.primitives.push_back(primitive);
-		obstacle_object.primitive_poses.push_back(object_pose);
+		planning_scene_interface.applyCollisionObjects(collision_objects);
 		
-		collision_objects.push_back(obstacle_object);
-		
-	  }
-	  
-	  planning_scene_interface.applyCollisionObjects(collision_objects);
-	  
-	  return return_object;
+		return return_object;
 	}
 
 	
