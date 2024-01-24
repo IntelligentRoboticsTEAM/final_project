@@ -41,7 +41,7 @@ bool scanCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){
 	std::vector<geometry_msgs::Pose> poses;
 	
 	float th_x = 0.7;
-	float th_y = 0.7; 	// PRIMA 0.7
+	float th_y = 0.2; 	// PRIMA 0.7
 	
 	std::vector<CartesianCoordinates> cartesianRanges = convertRanges(ranges, angle_min, angle_increment);
 	std::vector<std::vector<CartesianCoordinates>> cartesianRangesClusters = clusterRanges(cartesianRanges, th_x, th_y);

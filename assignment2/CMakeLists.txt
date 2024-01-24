@@ -134,6 +134,11 @@ set(SOURCE_FILES_CLIENT_NODE
   src/utils/navigation_methods.cpp
   src/utils/utils.cpp  
 )
+set(SOURCE_FILES_HANDLER_NODE
+  src/Handler.cpp
+  src/utils/navigation_methods.cpp
+  src/utils/utils.cpp  
+)
 
 set(SOURCE_FILES_SCAN_NODE
   src/scanNode.cpp 
@@ -171,3 +176,8 @@ add_dependencies(imageScanNode ${assignment2_EXPORTED_TARGETS})
 add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})
 target_link_libraries(clientNode ${catkin_LIBRARIES})
 add_dependencies(clientNode ${assignment2_EXPORTED_TARGETS})
+
+# clientNode executable
+add_executable(handler ${SOURCE_FILES_HANDLER_NODE})
+target_link_libraries(handler ${catkin_LIBRARIES})
+add_dependencies(handler ${assignment2_EXPORTED_TARGETS})

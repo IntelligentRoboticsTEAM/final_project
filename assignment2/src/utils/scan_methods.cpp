@@ -89,7 +89,7 @@ std::vector<geometry_msgs::Pose> findCylinders(const std::vector<std::vector<Car
 	std::vector<float> step_sizes;
 	for(int i = 0; i < rangeClusters.size()-1; i++)
 	{
-		float step = rangeClusters[i].back().y - rangeClusters[i+1][0].y;
+		float step = rangeClusters[i].back().x - rangeClusters[i+1][0].x;
 		step_sizes.push_back(step);
 		ROS_INFO("STEP SIZE for cluster %d\tSTEP: %f", i, step);
 	}
