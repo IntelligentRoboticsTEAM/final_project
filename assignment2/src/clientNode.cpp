@@ -9,67 +9,184 @@
 #include "headers/utils.h"
 #include "headers/navigation_methods.h"
 
+template <typename Action>
+bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName);
+void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback);
+void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback);
+int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse);
+int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
+int doScan(ros::ServiceClient &scan_client, ros::ServiceClient &image_scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg);
+int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
 
-/**
- * @brief Callback function to handle feedback from the PoseAction server.
- * @param feedback The feedback received from the server.
- */
-void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback) {
-    int status = feedback->status;
 
-    switch (status) {
-        case 0:
-            ROS_INFO("Received status: STOPPED");
-            break;
-        case 1:
-            ROS_INFO("Received status: MOVING");
-            break;
-        case 2:
-            ROS_INFO("Received status: REACHED_GOAL");
-            break;
-        case 3:
-            ROS_INFO("Received status: STARTED_SCAN");
-            break;
-        case 4:
-            ROS_INFO("Received status: ENDED_SCAN");
-            break;
-        case 5:
-        	ROS_INFO("Going to WAYPOINT");
-        default:
-            ROS_INFO("Received unknown status");
-            break;
+int main(int argc, char **argv) {
+
+	geometry_msgs::Pose bluePose;
+	geometry_msgs::Pose greenPose;
+	geometry_msgs::Pose redPose;
+	bluePose.position.x = 12.4;
+	bluePose.position.y = -0.85;
+	bluePose.position.z = 0;
+	greenPose.position.x = 11.4;
+	greenPose.position.y = -0.85;
+	greenPose.position.z = 0;
+	redPose.position.x = 10.4;
+	redPose.position.y = -0.85;
+	redPose.position.z = 0;
+    
+    //declaring node name
+    ros::init(argc, argv, "client_pose_revisited");
+    
+    //nodeHandle to manage ros nodes connections
+    ros::NodeHandle nh;
+    
+    //create service client to get pick object order
+    ros::ServiceClient human_client = nh.serviceClient<tiago_iaslab_simulation::Objs>("/human_objects_srv");
+    
+    //send the request to human_node
+    tiago_iaslab_simulation::Objs human_srv;
+    human_srv.request.ready = true;
+    human_srv.request.all_objs = true;
+    
+    //vector to store object order
+    std::vector<int> object_order;
+    
+    //check if the service is done correctly
+    if(human_client.call(human_srv)){
+    	for(int i = 0; i < human_srv.response.ids.size(); i++){
+    		//populate the vector previously defined with service response
+    		object_order.push_back(human_srv.response.ids[i]);
+    		ROS_INFO("Object ID: %d", (int)human_srv.response.ids[i]);
+    	}
     }
-}
- 
-void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
-    int status = feedback->status;
-
-    switch (status) {
-        case 0:
-            ROS_INFO("Received status: Pick Started");
-            break;
-        case 1:
-            ROS_INFO("Received status: Place Started");
-            break;
-        case 2:
-            ROS_INFO("Received status: Gripper is Open");
-            break;
-        case 3:
-            ROS_INFO("Received status: Gripper is Closed");
-            break;
-        case 4:
-            ROS_INFO("Received status: Arm is High");
-            break;
-        case 5:
-            ROS_INFO("Received status: Arm is Low");
-            break;
-        case 6:
-            ROS_INFO("Received status: Action Ended");
-            break;
-        default:
-            ROS_INFO("Received unknown status");
-            break;
+    else{
+    	//if the service fails we shutdown all ros nodes, unable to get object order
+    	ROS_ERROR("Failed to call service to get pick object order");
+    	ros::shutdown();
+        return 1;
     }
+    
+    /////// ------ ///////
+    // DELCARATIONS
+   
+    //Navigation client
+    actionlib::SimpleActionClient<assignment2::PoseAction> acNavigation("poseRevisited", true);
+    if (!isServerAvailable(acNavigation, "Navigation")) return 1;
+	
+    //Detection service client
+    ros::ServiceClient detectionClient = nh.serviceClient<assignment2::Detection>("/object_detection");
+    
+    //Manipulation client
+    actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
+    if (!isServerAvailable(acNavigation, "Manipulation")) return 1;
+    
+    //Scan clients
+	ros::ServiceClient scan_client = nh.serviceClient<assignment2::Scan>("/scan_node");
+    ros::ServiceClient image_scan_client = nh.serviceClient<assignment2::Scan>("/image_colors_node");
+	boost::shared_ptr<const sensor_msgs::LaserScan> msg;
+
+	apriltag_ros::AprilTagDetection nullAprilTag;
+	int returnVal;
+	
+	/////// ------ ///////
+    // EXECUTION
+	
+	/*
+		1) go to table (with harcoded position relatives to objects)
+	*/ 
+	returnVal = doNavigation(1, object_order[0], acNavigation, nullAprilTag);
+	if(returnVal == 1) return 1;
+	else returnVal = 0;
+
+	for(int i = 0; i < object_order.size(); i++){
+		
+	/*
+		2) Pick the object
+	*/ 
+/*		
+		returnVal = doPick(object_order[i], detectionClient, acManipulation);
+		if(returnVal == 1) return 1;
+		else returnVal = 0;
+*/		
+	/*
+		3) Go the Scan position 
+	*/ 
+		returnVal = doNavigation(2, object_order[i], acNavigation, nullAprilTag);
+		if(returnVal == 1) return 1;
+		else returnVal = 0;
+	
+	/*
+		4) Scan the cylinders
+	*/ 
+/*		std::vector<apriltag_ros::AprilTagDetection> scanResponse;
+		
+		if(i == 0){
+			msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
+	 	}
+	 	
+	 	returnVal = doScan(scan_client, image_scan_client, scanResponse, msg);
+	 	if(returnVal == 1) return 1;
+		else returnVal = 0;
+*/		
+
+		/* int correct_index;
+		for(int k = 0; k < scanResponse.size(); k++){
+			if(scanResponse[k].id[0] == object_order[i]){
+				correct_index = k;
+			}
+		} */
+		
+	/*
+		5) Go the cylinder
+	*/ 
+		
+		
+		apriltag_ros::AprilTagDetection tempResponse;
+			
+		if(object_order[i] == 1){
+			tempResponse.pose.pose.pose = bluePose;
+		} else if (object_order[i] == 2){
+			tempResponse.pose.pose.pose = greenPose;
+		} else if (object_order[i] == 3){
+			tempResponse.pose.pose.pose = redPose;	
+		} else {
+			ROS_ERROR("Object Order has been corrupted.");
+			return 1;
+		}
+		
+		tempResponse.id.push_back(object_order[i]);
+		
+		returnVal = doNavigation(3, object_order[i], acNavigation,  tempResponse /* scanResponse[correct_index] */);
+		ROS_INFO("Object to pick: %d", (int)object_order[i]);
+		//ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
+		//ROS_INFO("X: %f\tY:%f\tZ:%f", (float)scanResponse[correct_index].pose.pose.pose.position.x, (float)scanResponse[correct_index].pose.pose.pose.position.y, (float)scanResponse[correct_index].pose.pose.pose.position.z);
+		
+		if(returnVal == 1) return 1;
+		else returnVal = 0;
+		
+	/*
+		6) Place the object on the cylinder
+	*/ 	
+		
+/*		std::vector<apriltag_ros::AprilTagDetection> tempResponses;		
+		tempResponses.push_back(tempResponse);
+		
+		returnVal = doPlace(object_order[i], tempResponses, acManipulation);
+		if(returnVal == 1) return 1;
+		else returnVal = 0;
+*/		
+				
+	/*
+		7) Go back to Home position and restart the cycle
+	*/ 	
+		if(i < 2){
+			returnVal = doNavigation(4, object_order[i+1], acNavigation,  nullAprilTag);
+			if(returnVal == 1) return 1;
+			else returnVal = 0;
+		}
+	}
+
+    return 0;
 }
 
 
@@ -83,7 +200,7 @@ int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient
 	navigation_goal.id = object_order;
 	
 	//in the second choice we need to pass the place-cylinder pose
-	if(goalChoice == 2){
+	if(goalChoice == 3 ){
 		navigation_goal.detection = scanResponse;
 	}
 	
@@ -162,7 +279,7 @@ int doScan(ros::ServiceClient &scan_client, ros::ServiceClient &image_scan_clien
     return 0;
 }
 
-int doPick(int object_order,  ros::ServiceClient &detection_client, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
+int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
 {
 	assignment2::Detection detection_srv;
     detection_srv.request.ready = true;
@@ -173,14 +290,13 @@ int doPick(int object_order,  ros::ServiceClient &detection_client, actionlib::S
 	std::vector<apriltag_ros::AprilTagDetection> detectionsObj;
 	
 	//if the service call was successful
-    if(detection_client.call(detection_srv)){
+    if(detectionClient.call(detection_srv)){
         ROS_INFO("Detection done, tag id returned in base_footprint reference frame");
         
         //construct goal for manipulation node
-        armGoal.request = 1; // PICK action is called
+        armGoal.request = 1; 
         armGoal.id = object_order;
-        detectionsObj = detection_srv.response.detections;  
-        armGoal.detections = detectionsObj;
+        armGoal.detections = detection_srv.response.detections;
       	
       	acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
 		
@@ -207,148 +323,111 @@ int doPick(int object_order,  ros::ServiceClient &detection_client, actionlib::S
 }
 
 
-int doPlace(){
-	return 0;
-}
+int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
+{   
+	assignment2::ArmGoal armGoal;
+	std::vector<apriltag_ros::AprilTagDetection> detectionsObj;
 
-int main(int argc, char **argv) {
-    
-    //declaring node name
-    ros::init(argc, argv, "client_pose_revisited");
-    
-    //nodeHandle to manage ros nodes connections
-    ros::NodeHandle nh;
-    
-    //create service client to get pick object order
-    ros::ServiceClient human_client = nh.serviceClient<tiago_iaslab_simulation::Objs>("/human_objects_srv");
-    
-    //send the request to human_node
-    tiago_iaslab_simulation::Objs human_srv;
-    human_srv.request.ready = true;
-    human_srv.request.all_objs = true;
-    
-    //vector to store object order
-    std::vector<int> object_order;
-    
-    //check if the service is done correctly
-    if(human_client.call(human_srv)){
-    	for(int i = 0; i < human_srv.response.ids.size(); i++){
-    		//populate the vector previously defined with service response
-    		object_order.push_back(human_srv.response.ids[i]);
-    		ROS_INFO("Object ID: %d", (int)human_srv.response.ids[i]);
-    	}
-    }
-    else{
-    	//if the service fails we shutdown all ros nodes, unable to get object order
-    	ROS_ERROR("Failed to call service to get pick object order");
-    	ros::shutdown();
-        return 1;
-    }
-    
-    /////// ------ ///////
-    // CLIENT DELCARATIONS
-    
-    //navigation client
-    actionlib::SimpleActionClient<assignment2::PoseAction> acNavigation("poseRevisited", true);
-    
-    //check if server is up for 5 seconds
-    if (!acNavigation.waitForServer(ros::Duration(5.0))) { 
-		ROS_ERROR("Navigation server not available, shutting down...");
-		ros::shutdown();
-		return 1;
-	}
-	ROS_INFO("Navigation server started");
+  	// Goal for Manipulation
+    armGoal.request = 2; 
+    armGoal.id = object_order;
+    armGoal.detections = tempResponses;
+  	
+  	acManipulation.sendGoal(armGoal, NULL, NULL, &feedbackManipulation);
 	
-    //Detection service client
-    ros::ServiceClient detection_client = nh.serviceClient<assignment2::Detection>("/object_detection");
-    
-    //Manipulation client
-    actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
-    
-    //check if server is up for 5 seconds
-    if (!acNavigation.waitForServer(ros::Duration(5.0))) { 
-		ROS_ERROR("Manipulation server not available, shutting down");
-		ros::shutdown();
-		return 1;
-	}
-	ROS_INFO("Manipulation server started");
-	
-    //Scan service client
-	ros::ServiceClient scan_client = nh.serviceClient<assignment2::Scan>("/scan_node");
-    
-    //ImageScan service client
-    ros::ServiceClient image_scan_client = nh.serviceClient<assignment2::Scan>("/image_colors_node");
-	
-	boost::shared_ptr<const sensor_msgs::LaserScan> msg;
+	bool manipulation_finished_before_timeout = acManipulation.waitForResult(ros::Duration(60.0));
 
-	/////// ------ ///////
-	//EXECUTION 
-	
-	apriltag_ros::AprilTagDetection nullAprilTag;
-	int returnVal;
-	
-	for(int i = 0; i < object_order.size(); i++){
-		
-		//go to table (with harcoded position relatives to objects)
-		returnVal = doNavigation(1, object_order[i], acNavigation, nullAprilTag);
-		if(returnVal == 1) return 1;
-		else returnVal = 0;
-
-		//////// ------ ////////
-		// PICK
-		returnVal = doPick(object_order[i], detection_client, acManipulation);
-		if(returnVal == 1) return 1;
-		else returnVal = 0;
-		
-		/////// ------- ////////
-		// SECOND NAVIGATION
-		//go to cylinder scan position
-		returnVal = doNavigation(2, object_order[i], acNavigation, nullAprilTag);
-		if(returnVal == 1) return 1;
-		else returnVal = 0;
-		
-		/////// ------- ////////
-		// SCAN OF CYLINDERS
-		std::vector<apriltag_ros::AprilTagDetection> scanResponse;
-		
-		if(i == 0){
-			msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
-	 	}
-	 	
-	 	returnVal = doScan(scan_client, image_scan_client, scanResponse, msg);
-	 	if(returnVal == 1) return 1;
-		else returnVal = 0;
-		
-	   	/////// ------- ////////
-		// FINAL NAVIGATION
-		int correct_index;
-		for(int k = 0; k < scanResponse.size(); k++){
-			if(scanResponse[k].id[0] == object_order[i]){
-				correct_index = k;
-			}
-		}
-		
-		returnVal = doNavigation(3, object_order[i], acNavigation, scanResponse[correct_index]);
-		ROS_INFO("Object to pick: %d", (int)object_order[i]);
-		ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
-		ROS_INFO("X: %f\tY:%f\tZ:%f", (float)scanResponse[correct_index].pose.pose.pose.position.x, (float)scanResponse[correct_index].pose.pose.pose.position.y, (float)scanResponse[correct_index].pose.pose.pose.position.z);
-		
-		if(returnVal == 1) return 1;
-		else returnVal = 0;
-		
-	 	/////// ------- ////////
-		// PLACE
-		
-		returnVal = doPlace();
-		if(returnVal == 1) return 1;
-		else returnVal = 0;
-		
+	if (manipulation_finished_before_timeout) {
+	    actionlib::SimpleClientGoalState state = acManipulation.getState();
+	    ROS_INFO("Action finished: %s", state.toString().c_str());
+	    if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+			ROS_INFO("Pick done");
+	    }
+	} else {
+	    ROS_INFO("Pick action did not finish before the timeout.");
+	    acManipulation.cancelGoal();
+	    ROS_INFO("Pick goal has been cancelled");
 	}
-    
 	
-	
-	
-    
     return 0;
 }
+
+void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
+    int status = feedback->status;
+
+    switch (status) {
+        case 0:
+            ROS_INFO("Received status: Pick Started");
+            break;
+        case 1:
+            ROS_INFO("Received status: Place Started");
+            break;
+        case 2:
+            ROS_INFO("Received status: Gripper is Open");
+            break;
+        case 3:
+            ROS_INFO("Received status: Gripper is Closed");
+            break;
+        case 4:
+            ROS_INFO("Received status: Arm is High");
+            break;
+        case 5:
+            ROS_INFO("Received status: Arm is Low");
+            break;
+        case 6:
+            ROS_INFO("Received status: Action Ended");
+            break;
+        default:
+            ROS_INFO("Received unknown status");
+            break;
+    }
+}
+
+/**
+ * @brief Callback function to handle feedback from the PoseAction server.
+ * @param feedback The feedback received from the server.
+ */
+ void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback) {
+    int status = feedback->status;
+
+    switch (status) {
+        case 0:
+            ROS_INFO("Received status: STOPPED");
+            break;
+        case 1:
+            ROS_INFO("Received status: MOVING");
+            break;
+        case 2:
+            ROS_INFO("Received status: REACHED_GOAL");
+            break;
+        case 3:
+            ROS_INFO("Received status: STARTED_SCAN");
+            break;
+        case 4:
+            ROS_INFO("Received status: ENDED_SCAN");
+            break;
+        case 5:
+        	ROS_INFO("Going to WAYPOINT");
+        default:
+            ROS_INFO("Received unknown status");
+            break;
+    }
+}
+
+
+template <typename Action>
+bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName){
+    ROS_INFO("Waiting for %s server to start.", serverName.c_str());
+
+    if (!client.waitForServer(ros::Duration(5.0))) {
+        ROS_ERROR("%s server not available, shutting down", serverName.c_str());
+        ros::shutdown();
+        return false;
+    }
+
+    ROS_INFO("%s server started", serverName.c_str());
+    return true;
+}
+
+
 

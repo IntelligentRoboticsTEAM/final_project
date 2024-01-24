@@ -40,3 +40,4 @@ std::vector<Object> convertToObjectType(const std::vector<assignment2::Object>& 
     
     return objects;
 }
+

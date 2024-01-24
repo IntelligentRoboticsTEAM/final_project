@@ -51,13 +51,14 @@ public:
         if (id == 1 || id == 3) {
             feedback_.status = 5;
             as_.publishFeedback(feedback_);
-            navigateRobotToGoal(8.4, -2.2, 0.0, 0.0);
+            navigateRobotToGoal(8.4, -2, 0.0, 0.0);
         }
 
         // 2nd Waypoint to look at the cylinders from the center
         feedback_.status = 1;
         as_.publishFeedback(feedback_);
         navigateRobotToGoal(10.3, -4.3, 0.0, 0.0);
+        
         return navigateRobotToGoal(11.33, -2.5, 0.0, 93.0);;
     }
     
@@ -65,12 +66,17 @@ public:
         feedback_.status = 1;
         as_.publishFeedback(feedback_);
         
-        return navigateRobotToGoal(pose);
+        return navigateRobotToGoal(pose.position.x, pose.position.y, pose.position.z, 90.0);
     }
     
-    bool goToHome(){
+    bool goToHome(int id){
        ROS_INFO("Operation 0, reaching HOME");
-       return  navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);
+       
+       navigateRobotToGoal(10.3, -4.3, 0.0, 180.0);
+       
+       navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);	 // HOME
+       
+       return goToTable(id);
     }
 
     /**
@@ -94,12 +100,9 @@ public:
                 feedback_.status = 1;
                 as_.publishFeedback(feedback_);
                 
-                executionDone = goToHome();
-                
-                if (executionDone) {
-                    executionDone = goToTable(id);
-                }
-                
+                executionDone = navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);
+                if (executionDone) executionDone = goToTable(id);
+                             
                 break;
 
             case 2:
@@ -116,7 +119,7 @@ public:
        
        		case 4:
        		   	ROS_INFO("Operation 4, reaching home position");
-       			executionDone = goToHome();
+       			executionDone = goToHome(id);
                 break;
 
 
