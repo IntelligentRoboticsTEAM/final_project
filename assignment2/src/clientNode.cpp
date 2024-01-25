@@ -83,9 +83,12 @@ int main(int argc, char **argv) {
     //Scan clients
 	ros::ServiceClient scan_client = nh.serviceClient<assignment2::Scan>("/scan_node");
     ros::ServiceClient image_scan_client = nh.serviceClient<assignment2::Scan>("/image_colors_node");
+    
+    
+    // Useful in FOR cycle
 	boost::shared_ptr<const sensor_msgs::LaserScan> msg;
-
 	apriltag_ros::AprilTagDetection nullAprilTag;
+	std::vector<int> ids;
 	int returnVal;
 	
 	/////// ------ ///////
@@ -128,22 +131,40 @@ int main(int argc, char **argv) {
 	 	if(returnVal == 1) return 1;
 		else returnVal = 0;
 		
-
-		int correct_index;
-		for(int k = 0; k < scanResponse.size(); k++){
-			if(scanResponse[k].id[0] == object_order[i]){
-				correct_index = k;
+		
+		if (i == 0){
+			for(int i = 0; i < scanResponse.size(); i++){
+				ids.push_back(scanResponse[i].id[0]);
 			}
+			
+			std::reverse(ids.begin(), ids.end());
+		}
+		
+		int correct_index;
+		for(int k = 0; k < ids.size(); k++)
+		{
+			if(ids[k] == object_order[0])
+				correct_index = k;
+			
+			ROS_INFO("K %d\tX:%f\tY:%f\tZ:%f", k, 	(float)scanResponse[k].pose.pose.pose.position.x, (float)scanResponse[k].pose.pose.pose.position.y, (float)scanResponse[k].pose.pose.pose.position.z);
 		} 
 		
 	/*
 		5) Go the cylinder
 	*/ 
 	
-		apriltag_ros::AprilTagDetection tempResponse;
-		tempResponse.pose.pose.pose = scanResponse[correct_index].pose.pose.pose;
-		tempResponse.id[0] = correct_index;
+	apriltag_ros::AprilTagDetection tempResponse;
+	tempResponse.pose.pose.pose.position.x = scanResponse[correct_index].pose.pose.pose.position.x - 0.1;
+	tempResponse.pose.pose.pose.position.y = scanResponse[correct_index].pose.pose.pose.position.y - 0.5;
+	tempResponse.pose.pose.pose.position.z = 0.00;
+	tempResponse.id.push_back(correct_index);
 	
+	
+	ROS_INFO("Object to pick: %d", (int)object_order[i]); 
+	ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
+	ROS_INFO("X: %f\tY:%f\tZ:%f", (float)tempResponse.pose.pose.pose.position.x, 
+								  (float)tempResponse.pose.pose.pose.position.y, 
+								  (float)tempResponse.pose.pose.pose.position.z);
 /*			
 		if(object_order[i] == 1){
 			tempResponse.pose.pose.pose = bluePose;
@@ -160,9 +181,6 @@ int main(int argc, char **argv) {
 		
 */ 
 		returnVal = doNavigation(3, object_order[i], acNavigation,  tempResponse /* scanResponse[correct_index] */);
-		ROS_INFO("Object to pick: %d", (int)object_order[i]); 
-		ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
-		ROS_INFO("X: %f\tY:%f\tZ:%f", (float)scanResponse[correct_index].pose.pose.pose.position.x, (float)scanResponse[correct_index].pose.pose.pose.position.y, (float)scanResponse[correct_index].pose.pose.pose.position.z);
 		
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
@@ -171,13 +189,13 @@ int main(int argc, char **argv) {
 		6) Place the object on the cylinder
 	*/ 	
 		
-/*		std::vector<apriltag_ros::AprilTagDetection> tempResponses;		
+		std::vector<apriltag_ros::AprilTagDetection> tempResponses;		
 		tempResponses.push_back(tempResponse);
 		
 		returnVal = doPlace(object_order[i], tempResponses, acManipulation);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
-*/		
+	
 				
 	/*
 		7) Go back to Home position and restart the cycle
