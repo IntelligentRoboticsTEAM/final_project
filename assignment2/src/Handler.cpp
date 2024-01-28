@@ -303,7 +303,6 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
     
     //create manipulation goal and client
 	assignment2::ArmGoal armGoal;
-	std::vector<apriltag_ros::AprilTagDetection> detectionsObj;
 	
 	//if the service call was successful
     if(detectionClient.call(detection_srv)){
@@ -342,7 +341,6 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
 int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
 {   
 	assignment2::ArmGoal armGoal;
-	std::vector<apriltag_ros::AprilTagDetection> detectionsObj;
 
   	// Goal for Manipulation
     armGoal.request = 2; 
@@ -357,12 +355,12 @@ int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempR
 	    actionlib::SimpleClientGoalState state = acManipulation.getState();
 	    ROS_INFO("Action finished: %s", state.toString().c_str());
 	    if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-			ROS_INFO("Pick done");
+			ROS_INFO("Place done");
 	    }
 	} else {
-	    ROS_INFO("Pick action did not finish before the timeout.");
+	    ROS_INFO("Place action did not finish before the timeout.");
 	    acManipulation.cancelGoal();
-	    ROS_INFO("Pick goal has been cancelled");
+	    ROS_INFO("Place goal has been cancelled");
 	}
 	
     return 0;

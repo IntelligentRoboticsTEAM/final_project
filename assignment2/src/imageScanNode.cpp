@@ -43,19 +43,12 @@ std::vector<int> findColorOrder(const cv::Mat &img) {
     cv::Rect centerRect(width / 3, 0, width / 3, height);           // (1/3)
     cv::Rect rightRect(2 * width / 3, 0, width / 3, height); 		//  (1/3)
     
-    
-    cv::imshow("Left Region", img(leftRect));
-    cv::imshow("Center Region", img(centerRect));
-    cv::imshow("Right Region", img(rightRect));
-    cv::waitKey(0); 
-
-
-    // Process left region
-    processRegion(img(leftRect), colorOrder);
+	// Process right region
+    processRegion(img(rightRect), colorOrder);
     // Process center region
     processRegion(img(centerRect), colorOrder);
-    // Process right region
-    processRegion(img(rightRect), colorOrder);
+    // Process left region
+    processRegion(img(leftRect), colorOrder);
 
     return colorOrder;
 }
@@ -89,7 +82,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
     cvImgPtr->image.copyTo(img);
 
     cv::imshow(window_name, img);
-    cv::waitKey(15);
+    //cv::waitKey(15);
 }
 
 

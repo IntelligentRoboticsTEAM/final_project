@@ -172,7 +172,6 @@ public:
 		  	detection_index++;
 		}
 		
-		    	
     	// Creating PoseStamped approach/depart pose 
         geometry_msgs::PoseStamped appro_pose;
         appro_pose.header.frame_id = "odom";
@@ -319,9 +318,7 @@ public:
 			else
 				ROS_INFO_STREAM("Motion to goal_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
-		
-		
-		
+				
 		//close the gripper 
 		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
 		
@@ -475,12 +472,12 @@ public:
     }
     
 
-    bool place(std::vector<apriltag_ros::AprilTagDetection> detections){
+    bool place(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
 		
-        geometry_msgs::PoseStamped place_pose;
+		geometry_msgs::PoseStamped place_pose;
         place_pose.header.frame_id = "odom";
-        place_pose.pose.position.x = detections[0].pose.pose.pose.position.x;
-        place_pose.pose.position.y = detections[0].pose.pose.pose.position.y;
+        place_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
+        place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
         
         
 		double roll = 0.0;
@@ -491,7 +488,7 @@ public:
 		rotation_about_y.normalize();
 		place_pose.pose.orientation = tf2::toMsg(rotation_about_y);
         
-        switch(detections[0].id[0]){
+        switch(detections[correct_index].id[0]){
         	case 1:
         		place_pose.pose.position.z = 0.69 + 0.02 + 0.2 + 0.04; 
         		break;
@@ -505,6 +502,22 @@ public:
 	    moveit::planning_interface::PlanningSceneInterface place_scene_interface;
 		moveit::planning_interface::MoveGroupInterface arm_group("arm_torso");
 	  	moveit::planning_interface::MoveGroupInterface gripper_group("gripper");
+	  	
+	  	switch(detections[correct_index].id[0]){
+			case 1:
+				gripper_group.attachObject("Hexagon", "gripper_grasping_frame");
+				break;
+			case 2:
+				gripper_group.attachObject("Triangle", "gripper_grasping_frame");
+				break;
+			case 3:
+				gripper_group.attachObject("cube", "gripper_grasping_frame");
+    			break;
+    		default:
+    			ROS_ERROR("received object id to be attached represents an obstacle object");
+    			return false;
+    	}
+	  	
 	  	
 		//create place_cylinder collision object to be avoided during place motion
 		std::vector<moveit_msgs::CollisionObject> collision_objects;
@@ -523,9 +536,9 @@ public:
 		
 		//ROS_INFO("Z dimension: %f", primitive.dimensions[0]); //height
 		
-		cylinder_pose.position.x = detections[0].pose.pose.pose.position.x;
-		cylinder_pose.position.y = detections[0].pose.pose.pose.position.y;
-		cylinder_pose.position.z = 0.345;
+		cylinder_pose.position.x = detections[correct_index].pose.pose.pose.position.x;
+		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+		cylinder_pose.position.z = 0.35;
 		cylinder_pose.orientation.x = 0.0;
 		cylinder_pose.orientation.y = 0.0;
 		cylinder_pose.orientation.z = 1.0;
@@ -660,7 +673,7 @@ public:
                 }
                 break;
             case 2:
-                objectPlaced = place(goal->detections);
+                objectPlaced = place(goal->detections, goal->id);
                 if (objectPlaced){
                     result_.objectPlaced = objectPlaced;
                     as_.setSucceeded(result_);
