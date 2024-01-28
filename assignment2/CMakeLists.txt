@@ -141,7 +141,7 @@ set(SOURCE_FILES_HANDLER_NODE
 )
 
 set(SOURCE_FILES_SCAN_NODE
-  src/scanNode.cpp 
+  src/imageScanNode.cpp 
   src/utils/utils.cpp 
   src/utils/scan_methods.cpp
 )
@@ -163,14 +163,9 @@ target_link_libraries(manipulationNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(manipulationNode ${assignment2_EXPORTED_TARGETS})
 
 #scanNode executable
-add_executable(scanNode ${SOURCE_FILES_SCAN_NODE})
-target_link_libraries(scanNode ${catkin_LIBRARIES})
+add_executable(scanNode ${SOURCE_FILES_SCAN_NODE} )
+target_link_libraries(scanNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
 add_dependencies(scanNode ${assignment2_EXPORTED_TARGETS})
-
-add_executable(imageScanNode   src/imageScanNode.cpp src/utils/utils.cpp )
-target_link_libraries(imageScanNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(imageScanNode ${assignment2_EXPORTED_TARGETS})
-
 
 # clientNode executable
 add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})

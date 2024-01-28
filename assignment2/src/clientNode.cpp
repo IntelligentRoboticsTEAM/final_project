@@ -1,13 +1,19 @@
+// ROS libraries
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <assignment2/PoseAction.h>
-#include <assignment2/ArmAction.h>
-#include <assignment2/Scan.h> 
+// ROS messages and services
 #include <geometry_msgs/Pose.h>
 #include <tiago_iaslab_simulation/Objs.h>
+// Custom headers
+#include <assignment2/PoseAction.h>
+#include <assignment2/ArmAction.h>
+#include <assignment2/Scan.h>
 #include "headers/utils.h"
 #include "headers/navigation_methods.h"
+
+const float x_offset = 0.1;
+const float y_offset = 0.5;
 
 template <typename Action>
 bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName);
@@ -15,25 +21,12 @@ void feedbackNavigation(const assignment2::PoseFeedbackConstPtr& feedback);
 void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback);
 int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse);
 int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
-int doScan(ros::ServiceClient &scan_client, ros::ServiceClient &image_scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg);
+int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg);
 int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
 
 
 int main(int argc, char **argv) {
 
-	geometry_msgs::Pose bluePose;
-	geometry_msgs::Pose greenPose;
-	geometry_msgs::Pose redPose;
-	bluePose.position.x = 12.4;
-	bluePose.position.y = -0.85;
-	bluePose.position.z = 0;
-	greenPose.position.x = 11.4;
-	greenPose.position.y = -0.85;
-	greenPose.position.z = 0;
-	redPose.position.x = 10.4;
-	redPose.position.y = -0.85;
-	redPose.position.z = 0;
-    
     //declaring node name
     ros::init(argc, argv, "client_pose_revisited");
     
@@ -82,8 +75,6 @@ int main(int argc, char **argv) {
     
     //Scan clients
 	ros::ServiceClient scan_client = nh.serviceClient<assignment2::Scan>("/scan_node");
-    ros::ServiceClient image_scan_client = nh.serviceClient<assignment2::Scan>("/image_colors_node");
-    
     
     // Useful in FOR cycle
 	boost::shared_ptr<const sensor_msgs::LaserScan> msg;
@@ -101,6 +92,10 @@ int main(int argc, char **argv) {
 	if(returnVal == 1) return 1;
 	else returnVal = 0;
 	
+	geometry_msgs::Pose bluePose;	geometry_msgs::Pose greenPose; 	geometry_msgs::Pose redPose;
+	bluePose.position.x = 12.4; 	bluePose.position.y = -0.85;	bluePose.position.z = 0;
+	greenPose.position.x = 11.4;	greenPose.position.y = -0.85;	greenPose.position.z = 0;
+	redPose.position.x = 10.4;		redPose.position.y = -0.85;		redPose.position.z = 0;
 	
 	for(int i = 0; i < object_order.size(); i++){
 		
@@ -108,24 +103,27 @@ int main(int argc, char **argv) {
 		2) Pick the object
 	*/ 
 
-		returnVal = doPick(object_order[i], detectionClient, acManipulation);
+/*		returnVal = doPick(object_order[i], detectionClient, acManipulation);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
-		
+
+*/
+
 	/*
 		3) Go the Scan position 
 	*/ 
 		returnVal = doNavigation(2, object_order[i], acNavigation, nullAprilTag);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
-	
+		
+		
+		if(i == 0){		
+
 	/*
 		4) Scan the cylinders
 	*/ 
-		
-		if(i == 0){
 			msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
-			returnVal = doScan(scan_client, image_scan_client, scanResponse, msg);
+			returnVal = doScan(scan_client, scanResponse, msg);
 			if(returnVal == 1) return 1;
 			else returnVal = 0;
 			
@@ -150,16 +148,15 @@ int main(int argc, char **argv) {
 	*/ 
 	
 	
-	apriltag_ros::AprilTagDetection tempResponse;
-	tempResponse.pose.pose.pose.position.x = scanResponse[correct_index].pose.pose.pose.position.x - 0.1;
-	tempResponse.pose.pose.pose.position.y = scanResponse[correct_index].pose.pose.pose.position.y - 0.5;
-	tempResponse.pose.pose.pose.position.z = 0.00;
-	tempResponse.id.push_back(correct_index);
-	
-	
-	ROS_INFO("Object to pick: %d", (int)object_order[i]); 
-	ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
-	ROS_INFO("X: %f\tY:%f\tZ:%f", (float)tempResponse.pose.pose.pose.position.x,(float)tempResponse.pose.pose.pose.position.y,(float)tempResponse.pose.pose.pose.position.z);
+		apriltag_ros::AprilTagDetection tempResponse;
+		tempResponse.pose.pose.pose.position.x = scanResponse[correct_index].pose.pose.pose.position.x - x_offset;
+		tempResponse.pose.pose.pose.position.y = scanResponse[correct_index].pose.pose.pose.position.y - y_offset;
+		tempResponse.pose.pose.pose.position.z = 0.00;
+		tempResponse.id.push_back(correct_index);
+		
+		ROS_INFO("Object to pick: %d", (int)object_order[i]); 
+		ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
+		ROS_INFO("X: %f\tY:%f\tZ:%f", (float)tempResponse.pose.pose.pose.position.x,(float)tempResponse.pose.pose.pose.position.y,(float)tempResponse.pose.pose.pose.position.z);
 
 		returnVal = doNavigation(3, object_order[i], acNavigation, tempResponse);
 		
@@ -170,7 +167,7 @@ int main(int argc, char **argv) {
 		6) Place the object on the cylinder
 	*/ 	
 		
-		returnVal = doPlace(correct_index, scanResponse, acManipulation);
+/*		returnVal = doPlace(correct_index, scanResponse, acManipulation);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
 	
@@ -222,19 +219,24 @@ int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient
 	return 0;
 }
 
-int doScan(ros::ServiceClient &scan_client, ros::ServiceClient &image_scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg)
+int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg)
 {   
 	assignment2::Scan srv2;
- 	srv2.request.msg = *msg;
+ 	srv2.request.msg = *msg; // LASER SCAN
     srv2.request.ready = true; 
     
     if(scan_client.call(srv2))
     {
         ROS_INFO("Service call successful. Number of poses: %zu", srv2.response.poses.size());
+        ROS_INFO("Service call successful. Number of poses: %zu", srv2.response.ids_associated_colors.size());
+        
         for(int i=0; i<srv2.response.poses.size(); i++)
         {
             apriltag_ros::AprilTagDetection cylinder_pose;
+            
             cylinder_pose.pose.pose.pose = srv2.response.poses[i];
+            cylinder_pose.id.push_back(srv2.response.ids_associated_colors[i]);
+            
             scanResponse.push_back(cylinder_pose);
         }
 
@@ -245,24 +247,6 @@ int doScan(ros::ServiceClient &scan_client, ros::ServiceClient &image_scan_clien
         return 1;
     }
     
-    assignment2::Scan srv3;
-	srv3.request.ready = true; 
-	
-	if(image_scan_client.call(srv3))
-    {
-		ROS_INFO("Service call successful. Number of ids: %zu", srv3.response.ids_associated_colors.size());
-		ROS_INFO("Color Order: ");
-		for (int i=0; i < srv3.response.ids_associated_colors.size(); i++)
-		{	
-			ROS_INFO("Color %d: %d", i+1, srv3.response.ids_associated_colors[i]);
-			scanResponse[i].id.push_back(srv3.response.ids_associated_colors[i]);
-		}
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service, Client3");
-        return 1;
-    }
 
     /*for (int i = 0; i < std::min(srv3.response.ids_associated_colors.size(), srv2.response.poses.size()); ++i) {
         PoseID poseID;
