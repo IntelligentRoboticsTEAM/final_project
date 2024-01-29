@@ -23,20 +23,18 @@ int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient
 int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
 int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg);
 int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation);
-
+bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation);
 
 int main(int argc, char **argv) {
 
     //declaring node name
     ros::init(argc, argv, "client_pose_revisited");
-    
-    //nodeHandle to manage ros nodes connections
     ros::NodeHandle nh;
     
-    //create service client to get pick object order
+    /*
+     	0) Human Node Service
+   	*/
     ros::ServiceClient human_client = nh.serviceClient<tiago_iaslab_simulation::Objs>("/human_objects_srv");
-    
-    //send the request to human_node
     tiago_iaslab_simulation::Objs human_srv;
     human_srv.request.ready = true;
     human_srv.request.all_objs = true;
@@ -44,11 +42,10 @@ int main(int argc, char **argv) {
     //vector to store object order
     std::vector<int> object_order;
     
-    //check if the service is done correctly
     if(human_client.call(human_srv)){
-    	for(int i = 0; i < human_srv.response.ids.size(); i++){
-    		//populate the vector previously defined with service response
-    		object_order.push_back(human_srv.response.ids[i]);
+    	for(int i = 0; i < human_srv.response.ids.size(); i++)
+    	{
+    		object_order.push_back(human_srv.response.ids[i]);  //populate the vector previously defined with service response
     		ROS_INFO("Object ID: %d", (int)human_srv.response.ids[i]);
     	}
     }
@@ -62,26 +59,28 @@ int main(int argc, char **argv) {
     /////// ------ ///////
     // DELCARATIONS
    
-    //Navigation client
+    //Simple Action Clients
+    	// Navigation client
     actionlib::SimpleActionClient<assignment2::PoseAction> acNavigation("poseRevisited", true);
     if (!isServerAvailable(acNavigation, "Navigation")) return 1;
-	
-    //Detection service client
-    ros::ServiceClient detectionClient = nh.serviceClient<assignment2::Detection>("/object_detection");
-    
-    //Manipulation client
+        //Manipulation client
     actionlib::SimpleActionClient<assignment2::ArmAction> acManipulation("manipulationNode", true);
     if (!isServerAvailable(acNavigation, "Manipulation")) return 1;
     
-    //Scan clients
+	// Service CLients
+   		//Detection service client
+    ros::ServiceClient detectionClient = nh.serviceClient<assignment2::Detection>("/object_detection");
+    	//Scan clients
 	ros::ServiceClient scan_client = nh.serviceClient<assignment2::Scan>("/scan_node");
     
-    // Useful in FOR cycle
-	boost::shared_ptr<const sensor_msgs::LaserScan> msg;
-	apriltag_ros::AprilTagDetection nullAprilTag;
-	std::vector<int> ids;
-	int returnVal;
-	std::vector<apriltag_ros::AprilTagDetection> scanResponse;
+    // Other Variables Declarations
+	boost::shared_ptr<const sensor_msgs::LaserScan> msg;	// This will store the laser scan message
+	apriltag_ros::AprilTagDetection nullAprilTag;			// This will work as an empty struct to pass in order to use doNavigation() function when the AprilTag parameter is not used
+	std::vector<int> ids;									// This will contain the ids in the correct order from right to left
+	int returnVal;											// This variable will contain the return value of every function. When an error occurs, this is set to 1 and the program is shutdown.
+	std::vector<apriltag_ros::AprilTagDetection> scanResponse; // This vector will contain the Positions and the Colors of the scanned cylinders
+	
+
 	/////// ------ ///////
     // EXECUTION
 	
@@ -92,17 +91,14 @@ int main(int argc, char **argv) {
 	if(returnVal == 1) return 1;
 	else returnVal = 0;
 	
-	geometry_msgs::Pose bluePose;	geometry_msgs::Pose greenPose; 	geometry_msgs::Pose redPose;
-	bluePose.position.x = 12.4; 	bluePose.position.y = -0.85;	bluePose.position.z = 0;
-	greenPose.position.x = 11.4;	greenPose.position.y = -0.85;	greenPose.position.z = 0;
-	redPose.position.x = 10.4;		redPose.position.y = -0.85;		redPose.position.z = 0;
-	
 	for(int i = 0; i < object_order.size(); i++){
+	
+		int order = object_order[i];
+		int nextOrder = object_order[i+1];
 		
 	/*
 		2) Pick the object
 	*/ 
-
 /*		returnVal = doPick(object_order[i], detectionClient, acManipulation);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
@@ -112,16 +108,19 @@ int main(int argc, char **argv) {
 	/*
 		3) Go the Scan position 
 	*/ 
-		returnVal = doNavigation(2, object_order[i], acNavigation, nullAprilTag);
+		returnVal = doNavigation(2, order, acNavigation, nullAprilTag);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
 		
 		
-		if(i == 0){		
-
 	/*
-		4) Scan the cylinders
+		4) Scan the cylinders 
+		
+		This only happens once. It is not necessary to always recompute these results.
+		The invoked function will scan the positions of the cylinders and will be able to recognize the colors of the cylinders using OPENCV.
+		It will return scanResponse, that associates the right IDs (of color) with the right Positions of the cylinders.
 	*/ 
+		if(i == 0){		
 			msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
 			returnVal = doScan(scan_client, scanResponse, msg);
 			if(returnVal == 1) return 1;
@@ -133,35 +132,46 @@ int main(int argc, char **argv) {
 	 		
 	 	}
 	 	
-		
 		int correct_index;
 		for(int k = 0; k < ids.size(); k++)
 		{
-			if(ids[k] == object_order[i])
+			if(ids[k] == order)
 				correct_index = k;
 			
-			ROS_INFO("K %d\tX:%f\tY:%f\tZ:%f", k, 	(float)scanResponse[k].pose.pose.pose.position.x, (float)scanResponse[k].pose.pose.pose.position.y, (float)scanResponse[k].pose.pose.pose.position.z);
+			ROS_INFO("K %d\tX:%f\tY:%f\tZ:%f", k, 	(float)scanResponse[k].pose.pose.pose.position.x, 
+													(float)scanResponse[k].pose.pose.pose.position.y, 
+													(float)scanResponse[k].pose.pose.pose.position.z);
 		} 
 		
 	/*
 		5) Go the cylinder
 	*/ 
 	
-	
 		apriltag_ros::AprilTagDetection tempResponse;
-		tempResponse.pose.pose.pose.position.x = scanResponse[correct_index].pose.pose.pose.position.x - x_offset;
-		tempResponse.pose.pose.pose.position.y = scanResponse[correct_index].pose.pose.pose.position.y - y_offset;
-		tempResponse.pose.pose.pose.position.z = 0.00;
-		tempResponse.id.push_back(correct_index);
-		
-		ROS_INFO("Object to pick: %d", (int)object_order[i]); 
-		ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
-		ROS_INFO("X: %f\tY:%f\tZ:%f", (float)tempResponse.pose.pose.pose.position.x,(float)tempResponse.pose.pose.pose.position.y,(float)tempResponse.pose.pose.pose.position.z);
+	
+	
+	// !!!!!!!!!!.......... CHANGE != WITH == ..........!!!!!!!!!!
+		if(ids.size() != 3 && scanResponse.size() != 3)
+		{
+			tempResponse.pose.pose.pose.position.x = scanResponse[correct_index].pose.pose.pose.position.x - x_offset;
+			tempResponse.pose.pose.pose.position.y = scanResponse[correct_index].pose.pose.pose.position.y - y_offset;
+			tempResponse.pose.pose.pose.position.z = 0.00;
+			tempResponse.id.push_back(correct_index);
+			
+			ROS_INFO("Object to pick: %d", (int)order); 
+			ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
+			ROS_INFO("X: %f\tY:%f\tZ:%f", (float)tempResponse.pose.pose.pose.position.x,(float)tempResponse.pose.pose.pose.position.y,(float)tempResponse.pose.pose.pose.position.z);
 
-		returnVal = doNavigation(3, object_order[i], acNavigation, tempResponse);
-		
-		if(returnVal == 1) return 1;
-		else returnVal = 0;
+			returnVal = doNavigation(3, order, acNavigation, tempResponse);
+			if(returnVal == 1) return 1;
+			else returnVal = 0;
+		} 
+		else 
+		{
+			returnVal = doRecoveryNavigation(order, acNavigation);
+			if(returnVal == 1) return 1;
+			else returnVal = 0;
+		}	
 		
 	/*
 		6) Place the object on the cylinder
@@ -173,10 +183,19 @@ int main(int argc, char **argv) {
 	
 				
 	/*
-		7) Go back to Home position and restart the cycle
+		7) Go back to Home position and restart the cycle (when i < 2)
+		   Go back to Home position (when i = 2)
+			
 	*/ 	
 		if(i < 2){
-			returnVal = doNavigation(4, object_order[i+1], acNavigation,  nullAprilTag);
+			returnVal = doNavigation(4, nextOrder, acNavigation,  nullAprilTag);
+			if(returnVal == 1) return 1;
+			else returnVal = 0;
+		} 
+		
+		
+		if (i == 2){
+			returnVal = doNavigation(5, order, acNavigation,  nullAprilTag);
 			if(returnVal == 1) return 1;
 			else returnVal = 0;
 		}
@@ -387,8 +406,6 @@ void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
         case 4:
             ROS_INFO("Received status: ENDED_SCAN");
             break;
-        case 5:
-        	ROS_INFO("Going to WAYPOINT");
         default:
             ROS_INFO("Received unknown status");
             break;
@@ -409,6 +426,38 @@ bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, cons
     ROS_INFO("%s server started", serverName.c_str());
     return true;
 }
+
+bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation){
+
+	ROS_WARN("RECOVERY PLAN IN USE FOR NAVIGATION!");
+	
+	geometry_msgs::Pose bluePose;	geometry_msgs::Pose greenPose; 	geometry_msgs::Pose redPose;
+	bluePose.position.x = 12.4; 	bluePose.position.y = -0.45;	bluePose.position.z = 0;
+	greenPose.position.x = 11.4;	greenPose.position.y = -0.45;	greenPose.position.z = 0;
+	redPose.position.x = 10.4;		redPose.position.y = -0.45;		redPose.position.z = 0;
+	
+	apriltag_ros::AprilTagDetection tempResponse;
+	
+	switch(object_order){
+		case 1: 
+			tempResponse.pose.pose.pose = bluePose;
+			break;
+		case 2: 
+			tempResponse.pose.pose.pose = greenPose;
+			break;
+		case 3: 
+			tempResponse.pose.pose.pose = redPose;
+			break;
+		default:
+			ROS_ERROR("ERROR IN RECOVERY NAVIGATION TO CYLINDERS. ORDER = %d", object_order);
+			return false;
+	}
+	
+	tempResponse.id.push_back(object_order);
+	
+	return doNavigation(3, object_order, acNavigation, tempResponse );
+}
+
 
 
 

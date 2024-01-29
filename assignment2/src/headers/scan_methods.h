@@ -18,9 +18,5 @@ std::vector<CartesianCoordinates> convertRanges (const std::vector<float> &range
 					
 std::vector<geometry_msgs::Pose> findCylinders(const std::vector<std::vector<CartesianCoordinates>> &rangeClusters,
 				   								float angle_min, float angle_increment);
-
-// unused
-std::vector<Obstacle> findObstacles2(const std::vector<std::vector<float>> &rangeClusters, float angle_min, float angle_increment);
-std::vector<Obstacle> findObstacles3(const std::vector<std::vector<float>> &rangeClusters, float angle_min, float angle_increment);
-
+				   								
 #endif // SCAN_METHODS_H

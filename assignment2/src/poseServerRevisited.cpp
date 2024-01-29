@@ -28,7 +28,11 @@ public:
     ~PoseAction(void){}
 
 
-    bool goToTable(int id) {
+    bool goToTable(int id) 
+    {
+		feedback_.status = 1;
+		as_.publishFeedback(feedback_);
+		
 		switch (id) {
 		    case 1:
 		        // Final position for BLUE
@@ -45,26 +49,57 @@ public:
 		        ROS_ERROR("Error on selecting object ordering");
 		        return false;
 		}
+		
+		feedback_.status = 2;
+		as_.publishFeedback(feedback_);
+		
+	            
+        feedback_.status = 0;
+		as_.publishFeedback(feedback_);
+		
     }
 
     bool goToScanPosition(int id) {
-        if (id == 1 || id == 3) {
-            feedback_.status = 5;
-            as_.publishFeedback(feedback_);
+        if (id == 1 || id == 3) 
+        {
+
+			feedback_.status = 1;
+			as_.publishFeedback(feedback_);
+            
             navigateRobotToGoal(8.4, -2, 0.0, 0.0);
+            
+            feedback_.status = 2;
+            as_.publishFeedback(feedback_);
+            
+            feedback_.status = 0;
+			as_.publishFeedback(feedback_);
+		
+            
         }
 
         // 2nd Waypoint to look at the cylinders from the center
-        feedback_.status = 1;
-        as_.publishFeedback(feedback_);
+		feedback_.status = 1;
+		as_.publishFeedback(feedback_);
+		
         navigateRobotToGoal(10.3, -4.3, 0.0, 0.0);
         
-        return navigateRobotToGoal(11.33, -2.5, 0.0, 93.0);;
+        bool returned = navigateRobotToGoal(11.33, -2.5, 0.0, 93.0);
+        if(returned){
+        	feedback_.status = 2;
+            as_.publishFeedback(feedback_);
+        }
+        
+        feedback_.status = 0;
+		as_.publishFeedback(feedback_);
+		
+        
+        return returned;
     }
     
      bool goToCylinder(geometry_msgs::Pose pose) {
-        feedback_.status = 1;
-        as_.publishFeedback(feedback_);
+
+		feedback_.status = 1;
+		as_.publishFeedback(feedback_);
         
         return navigateRobotToGoal(pose.position.x, pose.position.y, pose.position.z, 90.0);
     }
@@ -74,25 +109,37 @@ public:
        
        navigateRobotToGoal(10.3, -4.3, 0.0, 180.0);
        
-       navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);	 // HOME
-       
-       return goToTable(id);
+       bool returned = navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);	 // HOME
+       if(returned){
+        	feedback_.status = 2;
+            as_.publishFeedback(feedback_);
+        }
+        
+        feedback_.status = 0;
+		as_.publishFeedback(feedback_);
+		
+        
+        return returned;
     }
 
     /**
      * @brief Callback function for executing the navigation action.
      * @param goal The goal for the pose action.
      */
-    void executeCB(const assignment2::PoseGoalConstPtr &goal) {
-        
-        //Initializing data for goalPosition
-        int id = goal->id;
-
+    void executeCB(const assignment2::PoseGoalConstPtr &goal) 
+    {
+    // STOPPED
         feedback_.status = 0;
         as_.publishFeedback(feedback_);
         
+        //Initializing data for goalPosition
+        int id = goal->id;
         geometry_msgs::Pose pose;
-
+        
+	// MOVING
+     //   feedback_.status = 1;
+     //   as_.publishFeedback(feedback_);
+        
         switch (goal->operation) 
         {        
             case 1:
@@ -101,13 +148,14 @@ public:
                 as_.publishFeedback(feedback_);
                 
                 executionDone = navigateRobotToGoal(8.4, 0.0, 0.0, 0.0);
-                if (executionDone) executionDone = goToTable(id);
+                if (executionDone) 
+                	executionDone = goToTable(id);
                              
                 break;
 
             case 2:
                 ROS_INFO("Operation 2, reaching the scan position");
-                executionDone = goToScanPosition(id);
+                executionDone = goToScanPosition(id); 
                 break;
                 
             case 3:
@@ -115,22 +163,32 @@ public:
 
 				pose = goal->detection.pose.pose.pose;
             	executionDone = goToCylinder(pose);
+            	
             	break;
        
        		case 4:
-       		   	ROS_INFO("Operation 4, reaching home position");
+       		   	ROS_INFO("Operation 4, reaching home position, then table position");
        			executionDone = goToHome(id);
+       			if (executionDone) 
+       				executionDone = goToTable(id);
+       				
                 break;
-
-
+                
+            case 5:
+               	ROS_INFO("Operation 5, reaching HOME position.");
+               	executionDone = goToHome(id);
+               	
+               	break;
+               	
             default:
-                ROS_ERROR("Error while passing navigation operation (table, scan, cylinder, home)");
+                ROS_ERROR("Error in Navigation CallBack.");
                 break;
         }
 
+	// ARRIVED
         if (executionDone) {
-            feedback_.status = 2; // Sending REACHED_GOAL to feedback
-            as_.publishFeedback(feedback_);
+        //    feedback_.status = 2; // Sending REACHED_GOAL to feedback
+        //    as_.publishFeedback(feedback_);
             result_.arrived = executionDone;
             as_.setSucceeded(result_);
         } else {
