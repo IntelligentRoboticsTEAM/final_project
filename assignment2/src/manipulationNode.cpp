@@ -7,7 +7,6 @@
 #include <control_msgs/PointHeadAction.h>
 #include <ros/topic.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 #include <geometry_msgs/Pose.h>
@@ -95,7 +94,11 @@ public:
 
 			obstacle_object.id = std::to_string(detections[i].id[0]); // 1, 2, ... ,  7
 			obstacle_object.header.frame_id = "odom";
-
+			
+			tf2::Quaternion obj2_quaternion(detections[i].pose.pose.pose.orientation.x, detections[i].pose.pose.pose.orientation.y, detections[i].pose.pose.pose.orientation.z, detections[i].pose.pose.pose.orientation.w);
+		   tf2::Matrix3x3 m(obj2_quaternion);
+		   tf2::Quaternion obj2_orient;
+		   
 			switch((int)detections[i].id[0]){
 				case 1:					
 					obj_primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
@@ -113,19 +116,27 @@ public:
 					break;
 				case 2: //da rivedere perche ha una forma strana					
 					obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
-					obj_primitive.dimensions.resize(3);
-					obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
-					obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
-					obj_primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
-					
-					object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015;
-					object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
-					object_pose.position.z = 0.755;
-					object_pose.orientation = detections[i].pose.pose.pose.orientation;
-					
-					return_object = obstacle_object;
-					
-					break;
+					 obj_primitive.dimensions.resize(3);
+					 obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
+					 obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
+					 obj_primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
+					 
+					 object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015;
+					 object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
+					 object_pose.position.z = 0.755;
+					 
+					 
+					 double roll, pitch, yaw;
+					 m.getRPY(roll, pitch, yaw);
+					 roll = 0.0;
+					 pitch = 0.0;
+					 obj2_orient.setRPY(roll, pitch, yaw);
+					 obj2_orient.normalize();
+					 object_pose.orientation = tf2::toMsg(obj2_orient);
+					 
+					 return_object = obstacle_object;
+					 
+					 break;
 					
 				case 3:					
 					obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
@@ -265,7 +276,9 @@ public:
 		home_pose = gripper_group.getCurrentPose("gripper_grasping_frame");
 		
 		//add ollision objects to make tiago avoid them while reaching appro_pose
+		//moveit_msgs::CollisionObject pick_object = 
 		addCollisionObjects(detections);
+		//std::string object_id = pick_object.id;
 		
 		arm_group.setPlannerId("SBLkConfigDefault");
 		arm_group.setStartStateToCurrentState();
@@ -295,10 +308,13 @@ public:
 		//Creating plan for goal
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan_goal;
 	    
+	    /*
 	    //removing the pickable object from the planning_scene to make it pickable
 	    std::vector<std::string> ids;
-	    ids.push_back(std::to_string(detections[detection_index].id[0]));
+	    std::string object_id = std::to_string(detections[detection_index].id[0]);
+	    ids.push_back(object_id);
 		planning_scene_interface.removeCollisionObjects(ids);
+		*/
 		
 		arm_group.setStartStateToCurrentState();
 		arm_group.setMaxVelocityScalingFactor(1.0);
@@ -322,7 +338,14 @@ public:
 			else
 				ROS_INFO_STREAM("Motion to goal_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
-				
+		
+		std::vector<std::string> touch_links;
+		touch_links.push_back("gripper_left_finger_link");
+		touch_links.push_back("gripper_right_finger_link");
+		std::string object_id = std::to_string(detections[detection_index].id[0]);
+		gripper_group.attachObject(object_id, "gripper_grasping_frame", touch_links);
+    	
+    			
 		//close the gripper 
 		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
 		
@@ -331,7 +354,7 @@ public:
 		
 		std::vector<double> close_gripper_values;
 		
-
+		
 		switch(detections[detection_index].id[0]){
 			case 1:
 				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.005);
@@ -368,48 +391,8 @@ public:
 			else
 				ROS_INFO_STREAM("Motion to closing gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
-		
-		std::vector<std::string> world_ids;
-	    
-		std::map<std::string, moveit_msgs::CollisionObject> map;
-		moveit_msgs::CollisionObject object;
-		
-		
-		switch(detections[detection_index].id[0]){
-			case 1:
-				world_ids.push_back("Hexagon");
-				map = planning_scene_interface.getObjects(world_ids);
-				object = map["Hexagon"];
-				//gripper_group.attachObject("Hexagon", "gripper_grasping_frame");
-				break;
-			case 2:
-				world_ids.push_back("Triangle");
-				map = planning_scene_interface.getObjects(world_ids);
-				object = map["Triangle"];
-				//gripper_group.attachObject("Triangle", "gripper_grasping_frame");
-				break;
-			case 3:
-				world_ids.push_back("cube");
-				map = planning_scene_interface.getObjects(world_ids);
-				object = map["cube"];
-				//gripper_group.attachObject("cube", "gripper_grasping_frame");
-    			break;
-    		default:
-    			ROS_ERROR("received object id to be attached represents an obstacle object");
-    			return false;
-    	}
-    	/*
-		
-		*/
-		
-		moveit_msgs::AttachedCollisionObject attached_object;
-		attached_object.link_name = "gripper_grasping_frame";
-		attached_object.object = object;
-    	planning_scene_interface.applyAttachedCollisionObject(attached_object);
     	
-    	
-    	//planning_scene_interface.applyPlanningScene();
-    	
+    	//departs
     	moveit::planning_interface::MoveGroupInterface::Plan my_plan_appro;
 		
 		arm_group.setPlannerId("SBLkConfigDefault");
@@ -628,8 +611,6 @@ public:
 		
 		
 		gripper_group.detachObject();
-		
-		//planning_scene_interface.applyPlanningScene();
 		
 		//come back to home_pose
 		moveit::planning_interface::MoveGroupInterface::Plan home_plan;

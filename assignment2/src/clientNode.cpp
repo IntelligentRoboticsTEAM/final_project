@@ -12,6 +12,11 @@
 #include "headers/utils.h"
 #include "headers/navigation_methods.h"
 
+
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/move_group_interface/move_group_interface.h>
+
+
 const float x_offset = 0.1;
 const float y_offset = 0.5;
 
@@ -26,6 +31,8 @@ int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempR
 bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation);
 
 int main(int argc, char **argv) {
+
+	
 
     //declaring node name
     ros::init(argc, argv, "client_pose_revisited");
@@ -98,12 +105,10 @@ int main(int argc, char **argv) {
 		
 	/*
 		2) Pick the object
-	*/ 
-/*		returnVal = doPick(object_order[i], detectionClient, acManipulation);
+	*/
+		returnVal = doPick(object_order[i], detectionClient, acManipulation);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
-
-*/
 
 	/*
 		3) Go the Scan position 
@@ -151,7 +156,7 @@ int main(int argc, char **argv) {
 	
 	
 	// !!!!!!!!!!.......... CHANGE != WITH == ..........!!!!!!!!!!
-		if(ids.size() != 3 && scanResponse.size() != 3)
+		if(ids.size() == 3 && scanResponse.size() == 3)
 		{
 			tempResponse.pose.pose.pose.position.x = scanResponse[correct_index].pose.pose.pose.position.x - x_offset;
 			tempResponse.pose.pose.pose.position.y = scanResponse[correct_index].pose.pose.pose.position.y - y_offset;
@@ -177,12 +182,12 @@ int main(int argc, char **argv) {
 		6) Place the object on the cylinder
 	*/ 	
 		
-/*		returnVal = doPlace(correct_index, scanResponse, acManipulation);
+		returnVal = doPlace(correct_index, scanResponse, acManipulation);
 		if(returnVal == 1) return 1;
 		else returnVal = 0;
 	
-				
-	/*
+	/*				
+	
 		7) Go back to Home position and restart the cycle (when i < 2)
 		   Go back to Home position (when i = 2)
 			
@@ -432,9 +437,9 @@ bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assign
 	ROS_WARN("RECOVERY PLAN IN USE FOR NAVIGATION!");
 	
 	geometry_msgs::Pose bluePose;	geometry_msgs::Pose greenPose; 	geometry_msgs::Pose redPose;
-	bluePose.position.x = 12.4; 	bluePose.position.y = -0.45;	bluePose.position.z = 0;
-	greenPose.position.x = 11.4;	greenPose.position.y = -0.45;	greenPose.position.z = 0;
-	redPose.position.x = 10.4;		redPose.position.y = -0.45;		redPose.position.z = 0;
+	bluePose.position.x = 12.4; 	bluePose.position.y = -0.85;	bluePose.position.z = 0;
+	greenPose.position.x = 11.4;	greenPose.position.y = -0.85;	greenPose.position.z = 0;
+	redPose.position.x = 10.4;		redPose.position.y = -0.85;		redPose.position.z = 0;
 	
 	apriltag_ros::AprilTagDetection tempResponse;
 	

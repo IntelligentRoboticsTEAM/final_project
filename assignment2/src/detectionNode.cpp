@@ -67,7 +67,7 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
 	pointUp.header.frame_id = "/xtion_rgb_optical_frame"; 
 	//pointStamped.header.stamp = latestImageStamp;
 	pointUp.point.x = 0.00;
-	pointUp.point.y = -0.60;
+	pointUp.point.y = -0.80;
 	pointUp.point.z = 1.00;  
 	
 	//the goal consists in making the Z axis of the cameraFrame to point towards the pointStamped
