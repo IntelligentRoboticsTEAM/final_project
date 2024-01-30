@@ -169,7 +169,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
     cvImgPtr->image.copyTo(img);
 
     cv::imshow(window_name, img);
-    cv::waitKey(0);
+    //cv::waitKey(0);
 }
 
 std::vector<int> findColorOrder(const cv::Mat &img) {

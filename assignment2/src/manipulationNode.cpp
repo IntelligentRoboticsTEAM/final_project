@@ -58,17 +58,17 @@ public:
 		// ADDING TABLE COLLISION OBJECT
 		moveit_msgs::CollisionObject table_object;
 		table_object.id = "table";
-		table_object.header.frame_id = "odom";
+		table_object.header.frame_id = "map";
 		
 		// Define the shape of the collision object
 		shape_msgs::SolidPrimitive table_primitive;
 		table_primitive.type = shape_msgs::SolidPrimitive::BOX;
 		table_primitive.dimensions.resize(3);
-		table_primitive.dimensions[0] = 0.96;  // x dimension
-		table_primitive.dimensions[1] = 0.96;  // y dimension
+		table_primitive.dimensions[0] = 1.0;  // x dimension
+		table_primitive.dimensions[1] = 1.0;  // y dimension
 		table_primitive.dimensions[2] = 0.755;  // z dimension
 
-		// Set the pose of the collision object (odom frame)
+		// Set the pose of the collision object (map frame)
 		geometry_msgs::Pose table_pose;
 		table_pose.orientation.x = 0.0;
 		table_pose.orientation.y = 0.0;
@@ -93,7 +93,7 @@ public:
 			geometry_msgs::Pose object_pose;
 
 			obstacle_object.id = std::to_string(detections[i].id[0]); // 1, 2, ... ,  7
-			obstacle_object.header.frame_id = "odom";
+			obstacle_object.header.frame_id = "map";
 			
 			tf2::Quaternion obj2_quaternion(detections[i].pose.pose.pose.orientation.x, detections[i].pose.pose.pose.orientation.y, detections[i].pose.pose.pose.orientation.z, detections[i].pose.pose.pose.orientation.w);
 		   tf2::Matrix3x3 m(obj2_quaternion);
@@ -123,7 +123,7 @@ public:
 					 
 					 object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015;
 					 object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
-					 object_pose.position.z = 0.755;
+					 object_pose.position.z = detections[i].pose.pose.pose.position.z;
 					 
 					 
 					 double roll, pitch, yaw;
@@ -191,7 +191,7 @@ public:
 		
     	// Creating PoseStamped approach/depart pose 
         geometry_msgs::PoseStamped appro_pose;
-        appro_pose.header.frame_id = "odom";
+        appro_pose.header.frame_id = "map";
         tf2::Quaternion original_quaternion(detections[detection_index].pose.pose.pose.orientation.x, detections[detection_index].pose.pose.pose.orientation.y, detections[detection_index].pose.pose.pose.orientation.z, detections[detection_index].pose.pose.pose.orientation.w);
         tf2::Matrix3x3 m(original_quaternion);
 		double roll, pitch, yaw;
@@ -205,7 +205,7 @@ public:
         */
 		// Creating PoseStamped goal pose 
         geometry_msgs::PoseStamped goal_pose;
-        goal_pose.header.frame_id = "odom";
+        goal_pose.header.frame_id = "map";
         
         switch(detections[detection_index].id[0]){
         	case 1:
@@ -216,6 +216,7 @@ public:
 				
 				m.getRPY(roll, pitch, yaw);
 				pitch = M_PI / 2;
+				yaw += M_PI / 2;
 				
 				rotation_about_y.setRPY(roll, pitch, yaw);
 				rotation_about_y.normalize();
@@ -223,7 +224,7 @@ public:
 				
         		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        		goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z + 0.01; 
+        		goal_pose.pose.position.z = detections[detection_index].pose.pose.pose.position.z; 
         		goal_pose.pose.orientation = appro_pose.pose.orientation;
         		
         		break;
@@ -272,8 +273,8 @@ public:
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 	    
 		//get home position to return in after picking
-		geometry_msgs::PoseStamped home_pose;
-		home_pose = gripper_group.getCurrentPose("gripper_grasping_frame");
+		std::vector<double> home_pose;
+		home_pose = arm_group.getCurrentJointValues();
 		
 		//add ollision objects to make tiago avoid them while reaching appro_pose
 		//moveit_msgs::CollisionObject pick_object = 
@@ -357,16 +358,16 @@ public:
 		
 		switch(detections[detection_index].id[0]){
 			case 1:
-				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.005);
-				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.005);
+				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.001);
+				close_gripper_values.push_back(sqrt(2*(detections[detection_index].size[0]*detections[detection_index].size[0]))/2 - 0.001);
 				break;
 			case 2:
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
 				break;
 			case 3:
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
-				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.005);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
+				close_gripper_values.push_back((detections[detection_index].size[0])/2 - 0.001);
     			break;
     		default:
     			ROS_ERROR("received object id to be attached represents an obstacle object");
@@ -453,7 +454,7 @@ public:
 		arm_group.setStartStateToCurrentState();
 		arm_group.setPlanningTime(5.0);
 		
-		arm_group.setPoseTarget(home_pose, "gripper_grasping_frame"); //appro
+		arm_group.setJointValueTarget(home_pose);
 		
     	success = bool(arm_group.plan(home_plan));
 
@@ -491,7 +492,7 @@ public:
 		
 		place_cylinder.id = "place_cylinder";
 		primitive.type = shape_msgs::SolidPrimitive::CYLINDER;
-		place_cylinder.header.frame_id = "odom";
+		place_cylinder.header.frame_id = "map";
 		
 		primitive.dimensions.resize(2);
 		primitive.dimensions[0] = 0.70;  // height
@@ -520,11 +521,16 @@ public:
 
     bool place(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
 		
+		geometry_msgs::PoseStamped appro_pose;
+        appro_pose.header.frame_id = "map";
+        appro_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
+        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.z + 0.20;
+		
 		geometry_msgs::PoseStamped place_pose;
-        place_pose.header.frame_id = "odom";
+        place_pose.header.frame_id = "map";
         place_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
         place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
-        
         
 		double roll = 0.0;
 		double pitch = M_PI / 2;
@@ -532,7 +538,9 @@ public:
 		tf2::Quaternion rotation_about_y;
 		rotation_about_y.setRPY(roll, pitch, yaw);
 		rotation_about_y.normalize();
+		
 		place_pose.pose.orientation = tf2::toMsg(rotation_about_y);
+		appro_pose.pose.orientation = tf2::toMsg(rotation_about_y);
         
         switch(detections[correct_index].id[0]){
         	case 1:
@@ -557,14 +565,36 @@ public:
 		arm_group.setMaxVelocityScalingFactor(1.0);
 	    
 	    //get home_pose to return after place action
-	    geometry_msgs::PoseStamped home_pose;
-		home_pose = gripper_group.getCurrentPose("gripper_grasping_frame");
+	    std::vector<double> home_pose;
+		home_pose = arm_group.getCurrentJointValues();
+		
+		//set approach pose
+	    arm_group.setPoseTarget(appro_pose, "gripper_grasping_frame"); //appro
+	    arm_group.setPlanningTime(5.0);
+	    
+	    bool success = bool(arm_group.plan(place_plan));
+
+	    if(!success)
+	        ROS_ERROR("No plan found for appro_pose");
+		else{
+	    	ROS_INFO_STREAM("Plan found for appro_pose in " << place_plan.planning_time_ << " seconds");
+	    
+			ros::Time start = ros::Time::now();
+
+			// Execute the Movement
+			moveit::core::MoveItErrorCode e = arm_group.move();
+			if (!bool(e))
+			    ROS_ERROR("Error executing plan appro_pose");
+			else
+				ROS_INFO_STREAM("Motion to appro_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
+		}
+		
 		
 		//set goal target
 	    arm_group.setPoseTarget(place_pose, "gripper_grasping_frame"); //appro
 	    arm_group.setPlanningTime(5.0);
 	    
-	    bool success = bool(arm_group.plan(place_plan));
+	    success = bool(arm_group.plan(place_plan));
 
 	    if(!success)
 	        ROS_ERROR("No plan found for place_pose");
@@ -581,6 +611,8 @@ public:
 				ROS_INFO_STREAM("Motion to place_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
 		
+
+		
 		//open gripper
 		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
 		
@@ -588,8 +620,8 @@ public:
 		gripper_group.setPlanningTime(2.0);
 		
 		std::vector<double> open_gripper_values;
-		open_gripper_values.push_back(0.023);
-		open_gripper_values.push_back(0.023);
+		open_gripper_values.push_back(0.044);
+		open_gripper_values.push_back(0.044);
 		gripper_group.setJointValueTarget(open_gripper_values);
 		
     	success = bool(gripper_group.plan(gripper_plan));
@@ -609,8 +641,8 @@ public:
 				ROS_INFO_STREAM("Motion to opening gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
 		
+		gripper_group.detachObject(std::to_string(detections[correct_index].id[0]));
 		
-		gripper_group.detachObject();
 		
 		//come back to home_pose
 		moveit::planning_interface::MoveGroupInterface::Plan home_plan;
@@ -619,7 +651,7 @@ public:
 		arm_group.setStartStateToCurrentState();
 		arm_group.setPlanningTime(5.0);
 		
-		arm_group.setPoseTarget(home_pose, "gripper_grasping_frame"); //appro
+		arm_group.setJointValueTarget(home_pose); //appro
 		
     	success = bool(arm_group.plan(home_plan));
 

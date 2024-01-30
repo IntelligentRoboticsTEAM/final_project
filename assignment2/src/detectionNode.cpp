@@ -127,12 +127,12 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
 		try
 		{
 			tf::TransformListener tfListener;
-		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/odom", ros::Time(0), ros::Duration(3.0));
-			tfListener.transformPose("/odom", in_out_point, in_out_point);
+		    tfListener.waitForTransform("/xtion_rgb_optical_frame", "/map", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/map", in_out_point, in_out_point);
 		}
 		catch (tf::TransformException& ex)
 		{
-		    ROS_ERROR("Failed to transform point to /odom: %s", ex.what());
+		    ROS_ERROR("Failed to transform point to /map: %s", ex.what());
 		    return 1;
 		} 
 		

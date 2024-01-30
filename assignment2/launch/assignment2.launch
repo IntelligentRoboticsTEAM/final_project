@@ -19,5 +19,14 @@
   
   <!-- Step 6: Run rviz -->
   <!-- node pkg="rviz" type="rviz" name="rviz" output="screen" -->
+  
+  <!-- Step 7: Run detectionNode Node -->
+  <node pkg="assignment2" type="detectionNode" name="detection" output="screen" />
+  
+  <!-- Step 8: Run manipulationNode Node -->
+  <node pkg="assignment2" type="manipulationNode" name="manipulation" output="screen" />
+
+  <!-- Step 9: Run scanNode Node -->
+  <!-- node pkg="assignment2" type="scanNode" name="scan" output="screen" -->
 
  </launch>
