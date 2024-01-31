@@ -7,7 +7,6 @@
 #include <utility>
 #include <ros/ros.h>
 
-#include "Obstacle.h"
 #include "utils.h"
 
 std::vector<std::vector<CartesianCoordinates>> clusterRanges(const std::vector<CartesianCoordinates> &ranges,

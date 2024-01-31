@@ -76,9 +76,14 @@ int main(int argc, char** argv) {
 	*	CALLBACKS
 	*	
 */ 
-bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){
 
-	ROS_INFO("Starting Scan of cylinders POSITIONS...");
+/**
+ * @brief This method is used to take the center of the cylinders' positions
+ * @param req represents the request of Detection.srv
+ * @param res represents the response of Detection.srv
+ * @return TRUE if executes correctly and FALSE otherwise.
+ */
+bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){
 	
 	//Get laser info from correct topic
 	const std::vector<float> ranges = req.msg.ranges;
@@ -90,7 +95,7 @@ bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &
 	std::vector<geometry_msgs::Pose> poses;
 	
 	float th_x = 0.7;
-	float th_y = 0.2; 	// PRIMA 0.7
+	float th_y = 0.2; 
 	
 	std::vector<CartesianCoordinates> cartesianRanges = convertRanges(ranges, angle_min, angle_increment);
 	std::vector<std::vector<CartesianCoordinates>> cartesianRangesClusters = clusterRanges(cartesianRanges, th_x, th_y);
@@ -99,11 +104,10 @@ bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &
 	std::vector<geometry_msgs::Pose> return_vec;
 	
 	for(int i = 0; i< poses.size(); i++){
-		ROS_INFO("Poses[%d] in /base_laser_link= x: %f, y: %f, z: %f", i, poses[i].position.x, poses[i].position.y, poses[i].position.x);
 		
 		//convert poses in odom
 		geometry_msgs::PoseStamped in_out_point;
-		in_out_point.header.frame_id = "base_laser_link"; //da rivedere
+		in_out_point.header.frame_id = "base_laser_link";
 		in_out_point.pose = poses[i];
 		in_out_point.pose.orientation.x = 0.0;
 		in_out_point.pose.orientation.y = 0.0;
@@ -121,17 +125,12 @@ bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &
 			ROS_ERROR("Failed to transform point to /map: %s", ex.what());
 			return false;
 		}
-		
-		ROS_INFO("Poses[%d] in /map = x: %f, y: %f, z: %f", i, in_out_point.pose.position.x, in_out_point.pose.position.y, in_out_point.pose.position.x);
-		
+				
 		return_vec.push_back(in_out_point.pose);
 	}
 	
 	
 	// IMAGE SCAN PART
-	// 
-	ROS_INFO("Starting Scan of cylinders COLORS...");
-
 	std::vector<int> colorOrder = findColorOrder(img);
     
     if(colorOrder.size() > 0 && poses.size() > 0 && colorOrder.size() == poses.size())
@@ -152,7 +151,10 @@ bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &
 	*	UTILS FUNCTIONS
 	*	
 */ 
-
+/**
+ * @brief This method is used to return images of the cylinders to compute their colors
+ * @param imgMsg gets populated with the images
+ */
 void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 {		
 	latestImageStamp = imgMsg->header.stamp;
@@ -162,15 +164,16 @@ void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
 		cvImgPtr = cv_bridge::toCvCopy(imgMsg, sensor_msgs::image_encodings::BGR8);
 	} catch (cv_bridge::Exception& e) {
 		ROS_ERROR("cv_bridge exception: %s", e.what());
-		return;
 	}
 
     cvImgPtr->image.copyTo(img);
-
-    cv::imshow(window_name, img);
-    //cv::waitKey(0);
 }
 
+/**
+ * @brief This method returns a vector containing the colors of the cylinders in order from right to left
+ * @param img variable used to process the three regions of the picture
+ * @return the vector of colors represented as int
+ */
 std::vector<int> findColorOrder(const cv::Mat &img) {
     std::vector<int> colorOrder;
 
@@ -192,6 +195,11 @@ std::vector<int> findColorOrder(const cv::Mat &img) {
     return colorOrder;
 }
 
+/**
+ * @brief This method divides the picture in three regions and finds the dominant color for each region
+ * @param region region of the image to be processed
+ * @param colorOrder vector that gets populated with the order of colors
+ */
 void processRegion(const cv::Mat& region, std::vector<int>& colorOrder) {
     cv::Mat regionRed, regionGreen, regionBlue;
     cv::inRange(region, cv::Scalar(0, 0, 200), cv::Scalar(50, 50, 255), regionRed);
@@ -208,8 +216,6 @@ void processRegion(const cv::Mat& region, std::vector<int>& colorOrder) {
         colorOrder.push_back(2);
     else
         colorOrder.push_back(1);
-       
-    ROS_INFO("Blue: %d, Green: %d, Red: %d", blueCount, greenCount, redCount);
 }
 
 

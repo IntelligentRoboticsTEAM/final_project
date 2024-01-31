@@ -142,10 +142,6 @@ int main(int argc, char **argv) {
 		{
 			if(ids[k] == order)
 				correct_index = k;
-			
-			ROS_INFO("K %d\tX:%f\tY:%f\tZ:%f", k, 	(float)scanResponse[k].pose.pose.pose.position.x, 
-													(float)scanResponse[k].pose.pose.pose.position.y, 
-													(float)scanResponse[k].pose.pose.pose.position.z);
 		} 
 		
 	/*
@@ -163,10 +159,6 @@ int main(int argc, char **argv) {
 			tempResponse.pose.pose.pose.position.z = 0.00;
 			tempResponse.id.push_back(correct_index);
 			
-			ROS_INFO("Object to pick: %d", (int)order); 
-			ROS_INFO("Cylinder to go: %d", (int)scanResponse[correct_index].id[0]);
-			ROS_INFO("X: %f\tY:%f\tZ:%f", (float)tempResponse.pose.pose.pose.position.x,(float)tempResponse.pose.pose.pose.position.y,(float)tempResponse.pose.pose.pose.position.z);
-
 			returnVal = doNavigation(3, order, acNavigation, tempResponse);
 			if(returnVal == 1) return 1;
 			else returnVal = 0;
@@ -209,7 +201,14 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-
+/**
+ * @brief This method moves tiago to the desired position, depending on the value of goalChoice and object_order
+ * @param goalChoice for value = 1: tiago moves to the table, for value = 2: tiago moves to scan position, for value = 3: tiago moves to the cylinder, for value = 4: tiago moves to home and then to the table, for value = 5: tiago moves to home position
+ * @param object_order id received from human node
+ * @param acNavigation action client that manages the navigation
+ * @param scanResponse output of scan operation needed to move to right cylinder (for goalChoice = 3)
+ * @return 1 if the robot reaches the goal within the timeout and 0 otherwise.
+ */
 int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation, const apriltag_ros::AprilTagDetection &scanResponse)
 {
 	//goal pose to navigation 
@@ -234,15 +233,22 @@ int doNavigation(int goalChoice, int object_order, actionlib::SimpleActionClient
 		    	ROS_INFO("Navigation to goal finished before timeout");
 		}
 	} else {
-		ROS_INFO("Navigation to goal did not finish before the timeout.");
+		ROS_ERROR("Navigation to goal did not finish before the timeout.");
 		acNavigation.cancelGoal();
-		ROS_INFO("Goal has been cancelled");
+		ROS_ERROR("Goal has been cancelled");
 		return 1;
 	}
 	
 	return 0;
 }
 
+/**
+ * @brief This method makes a scan to find the position of the cylinders plus their associated colores
+ * @param scan_client service client called in the method
+ * @param scanResponse object that stores cylinders' colors and poses
+ * @param msg variable that contains the output from laser scan
+ * @return 1 if the robot scans correctly and 0 otherwise.
+ */
 int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDetection> &scanResponse, boost::shared_ptr<const sensor_msgs::LaserScan> msg)
 {   
 	assignment2::Scan srv2;
@@ -250,10 +256,7 @@ int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDe
     srv2.request.ready = true; 
     
     if(scan_client.call(srv2))
-    {
-        ROS_INFO("Service call successful. Number of poses: %zu", srv2.response.poses.size());
-        ROS_INFO("Service call successful. Number of poses: %zu", srv2.response.ids_associated_colors.size());
-        
+    {        
         for(int i=0; i<srv2.response.poses.size(); i++)
         {
             apriltag_ros::AprilTagDetection cylinder_pose;
@@ -263,7 +266,6 @@ int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDe
             
             scanResponse.push_back(cylinder_pose);
         }
-
     }
     else
     {
@@ -274,6 +276,13 @@ int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDe
     return 0;
 }
 
+/**
+ * @brief This method picks the required object
+ * @param object_order id received from human node
+ * @param detectionClient client called in the method
+ * @param acManipulation action client that manages the manipulation
+ * @return 1 if the robot picks the object correctly and 0 otherwise.
+ */
 int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
 {
 	assignment2::Detection detection_srv;
@@ -284,9 +293,7 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
 	assignment2::ArmGoal armGoal;
 	
 	//if the service call was successful
-    if(detectionClient.call(detection_srv)){
-        ROS_INFO("Detection done, tag id returned in map reference frame");
-        
+    if(detectionClient.call(detection_srv)){        
         //construct goal for manipulation node
         armGoal.request = 1; 
         armGoal.id = object_order;
@@ -303,9 +310,9 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
 				ROS_INFO("Pick done");
 		    }
 		} else {
-		    ROS_INFO("Pick action did not finish before the timeout.");
+		    ROS_ERROR("Pick action did not finish before the timeout.");
 		    acManipulation.cancelGoal();
-		    ROS_INFO("Pick goal has been cancelled");
+		    ROS_ERROR("Pick goal has been cancelled");
 		}
       	
     }else{
@@ -316,7 +323,13 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
     return 0;
 }
 
-
+/**
+ * @brief This method places the required object
+ * @param object_order id received from human node
+ * @param tempResponses object that contains cylinders' colors and poses
+ * @param acManipulation action client that manages the manipulation
+ * @return 1 if the robot places the object correctly and 0 otherwise.
+ */
 int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempResponses, actionlib::SimpleActionClient<assignment2::ArmAction> &acManipulation)
 {   
 	assignment2::ArmGoal armGoal;
@@ -337,14 +350,18 @@ int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempR
 			ROS_INFO("Place done");
 	    }
 	} else {
-	    ROS_INFO("Place action did not finish before the timeout.");
+	    ROS_ERROR("Place action did not finish before the timeout.");
 	    acManipulation.cancelGoal();
-	    ROS_INFO("Place goal has been cancelled");
+	    ROS_ERROR("Place goal has been cancelled");
 	}
 	
     return 0;
 }
 
+/**
+ * @brief Callback function to handle feedback from the manipulation server.
+ * @param feedback The feedback received from the server.
+ */
 void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
     int status = feedback->status;
 
@@ -362,14 +379,17 @@ void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
             ROS_INFO("Received status: Gripper is Closed");
             break;
         case 4:
-            ROS_INFO("Received status: Arm is High");
+            ROS_INFO("Received status: Arm is moving");
             break;
         case 5:
-            ROS_INFO("Received status: Arm is Low");
+            ROS_INFO("Received status: Object picked");
             break;
         case 6:
-            ROS_INFO("Received status: Action Ended");
+            ROS_INFO("Received status: Object placed");
             break;
+		case 7:
+			ROS_INFO("Received status: Arm is closed");
+			break;
         default:
             ROS_INFO("Received unknown status");
             break;
@@ -407,6 +427,12 @@ void feedbackManipulation(const assignment2::ArmFeedbackConstPtr& feedback) {
 
 
 template <typename Action>
+/**
+ * @brief Shuts down all the nodes if some errors occurr when calling manipulation or navigation
+ * @param client indicates if the problem comes from manipulation or navigation
+ * @param serverName string passed to print
+ * @return true if executes correctly, false otherwise
+ */
 bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, const std::string& serverName){
     ROS_INFO("Waiting for %s server to start.", serverName.c_str());
 
@@ -420,6 +446,11 @@ bool isServerAvailable(const actionlib::SimpleActionClient<Action>& client, cons
     return true;
 }
 
+/**
+ * @brief if scan of cylinders is not executed correctly, this method makes tiago follow a recovery plan for navigation to hard-coded positions
+ * @param object_order id received from human node
+ * @param acNavigation action client that manages the navigation
+ */
 bool doRecoveryNavigation(int object_order, actionlib::SimpleActionClient<assignment2::PoseAction> &acNavigation){
 
 	ROS_WARN("RECOVERY PLAN IN USE FOR NAVIGATION!");

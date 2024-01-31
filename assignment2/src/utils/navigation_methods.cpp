@@ -35,7 +35,14 @@ bool navigateRobotToGoal(const geometry_msgs::Pose& goalPosition)
 	if(!goalReached) ac.cancelGoal();
     return goalReached;
 }
-
+/**
+ * @brief This method navigates the robot to a specified goal pose (location + direction angle)
+ * @param x x coord 
+ * @param y y coord 
+ * @param z z coord 
+ * @param theta_z rotation around z-axis
+ * @return TRUE if the robot reaches the goal within the timeout and FALSE otherwise.
+ */
 bool navigateRobotToGoal(float x, float y, float z, float theta_z)
 {
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);

@@ -18,7 +18,12 @@
 #include <apriltag_ros/AprilTagDetectionArray.h>
 
 
-
+/**
+ * @brief This method detects the tags of the objects on the table and returns them through the Detection.srv's response
+ * @param req represents the request of Detection.srv
+ * @param res represents the response of Detection.srv
+ * @return TRUE if executes correctly and FALSE otherwise.
+ */
 bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
 
 	ROS_INFO("Incoming request: %s", req.ready ? "true" : "false");
@@ -76,9 +81,9 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
             ROS_INFO("Point down to the table");  
         }
     }else{
-        ROS_INFO("Point down did not finish before the timeout.");
+        ROS_ERROR("Point down did not finish before the timeout.");
         pointHeadClient.cancelGoal();
-        ROS_INFO("Point down goal has been cancelled");
+        ROS_ERROR("Point down goal has been cancelled");
     }
 	
 	apriltag_ros::AprilTagDetectionArray::ConstPtr apriltag_msg = ros::topic::waitForMessage<apriltag_ros::AprilTagDetectionArray>("/tag_detections", ros::Duration(10.0));
@@ -101,12 +106,6 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
 		in_out_point.header.frame_id = "/xtion_rgb_optical_frame";
 		in_out_point.pose = pose;
 		
-		ROS_INFO("ID pre: %d", apriltag_msg->detections[i].id[0]);
-		//ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[i].size[0]);
-		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", pose.position.x, pose.position.y, pose.position.z); //camera_frame
-		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
-		
-		
 		try
 		{
 			tf::TransformListener tfListener;
@@ -116,7 +115,7 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
 		catch (tf::TransformException& ex)
 		{
 		    ROS_ERROR("Failed to transform point to /map: %s", ex.what());
-		    return 1;
+		    return false;
 		} 
 		
 		apriltag_ros::AprilTagDetection transformed_detection;
@@ -125,12 +124,6 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
 		transformed_detection.size = apriltag_msg->detections[i].size;
 		transformed_detections.push_back(transformed_detection);
 		
-		ROS_INFO("ID post: %d", apriltag_msg->detections[i].id[0]);
-		//ROS_INFO("Detected tag size is: %f", (float)apriltag_msg->detections[i].size[0]);
-		ROS_INFO("Position\tx:%f\ty:%f\tz:%f", transformed_detection.pose.pose.pose.position.x, transformed_detection.pose.pose.pose.position.y, transformed_detection.pose.pose.pose.position.z); //camera_frame
-		ROS_INFO("Orientation\tx:%f\ty:%f\tz:%f\tw:%f", transformed_detection.pose.pose.pose.orientation.x, transformed_detection.pose.pose.pose.orientation.y, transformed_detection.pose.pose.pose.orientation.z, transformed_detection.pose.pose.pose.orientation.w);
-
-
 	}
 	
 	//make tiago point in up again
@@ -153,9 +146,10 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
             ROS_INFO("Point up");  
         }
     }else{
-        ROS_INFO("Point up did not finish before the timeout.");
+        ROS_ERROR("Point up did not finish before the timeout.");
         pointHeadClient.cancelGoal();
-        ROS_INFO("Point up goal has been cancelled");
+        ROS_ERROR("Point up goal has been cancelled");
+		return false;
     }
     
 	res.detections = transformed_detections;

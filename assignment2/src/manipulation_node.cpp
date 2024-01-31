@@ -51,6 +51,11 @@ public:
     
     ~ArmAction(void){}
     
+
+	/**
+	 * @brief Creates and adds the collision objects on the table to perform the pick, called from the method "pick"
+	 * @param detections vector of detections of the tags
+	 */
      void addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detections)
      {
 		std::vector<moveit_msgs::CollisionObject> collision_objects;
@@ -80,7 +85,7 @@ public:
 		
 		// Add the primitive to the collision object
 		table_object.primitives.push_back(table_primitive);
-		table_object.primitive_poses.push_back(table_pose); //map
+		table_object.primitive_poses.push_back(table_pose);
 		table_object.operation = table_object.ADD;
 		
 		collision_objects.push_back(table_object);
@@ -155,7 +160,7 @@ public:
 					
 					object_pose.position.x = detections[i].pose.pose.pose.position.x;
 					object_pose.position.y = detections[i].pose.pose.pose.position.y;
-					object_pose.position.z = detections[i].pose.pose.pose.position.z - obj_primitive.dimensions[0] / 2; //- 0.1 
+					object_pose.position.z = detections[i].pose.pose.pose.position.z - obj_primitive.dimensions[0] / 2;
 					object_pose.orientation = detections[i].pose.pose.pose.orientation;
 					
 					break;
@@ -172,9 +177,17 @@ public:
 		planning_scene_interface.applyCollisionObjects(collision_objects);
 	}
 
-	
+	/**
+	 * @brief picks the object identified by requestedID
+	 * @param detections array output of AprilTagDetection, contains all poses and dimensions of the tags found during scan
+	 * @param requestedID id of the object required to pick
+	 * @return TRUE if executes correctly and FALSE otherwise.
+	 */
     bool pick(std::vector<apriltag_ros::AprilTagDetection> detections, int requestedID){
     	
+		feedback_.status = 0; // Pick Started
+		as_.publishFeedback(feedback_);
+
 		int detection_index = 0;
 		  while(detections[detection_index].id[0] != requestedID){
 		  	detection_index++;
@@ -273,15 +286,18 @@ public:
 	    
 	    bool success = bool(arm_group.plan(my_plan));
 
+		feedback_.status = 4; // Arm is moving
+		as_.publishFeedback(feedback_);
+
 	    if(!success)
 	        ROS_ERROR("No plan found for appro_pose");
 		else{
 	    	ROS_INFO_STREAM("Plan found for appro_pose in " << my_plan.planning_time_ << " seconds");
 	    
 			ros::Time start = ros::Time::now();
-
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = arm_group.move();
+			
 			if (!bool(e))
 			    ROS_ERROR("Error executing plan appro_pose");
 			else
@@ -363,12 +379,19 @@ public:
 
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = gripper_group.move();
+
+			feedback_.status = 3; // Gripper is closed
+			as_.publishFeedback(feedback_);
+
 			if (!bool(e))
 			    ROS_ERROR("Error executing plan closing gripper");
 			else
 				ROS_INFO_STREAM("Motion to closing gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
     	
+		feedback_.status = 5; // Object picked
+		as_.publishFeedback(feedback_);
+
     	//departs
     	moveit::planning_interface::MoveGroupInterface::Plan my_plan_departs;
 		
@@ -409,7 +432,7 @@ public:
     	success = bool(arm_group.plan(home_plan));
 
 	    if(!success)
-	        ROS_ERROR("No plan found for closing gripper");
+	        ROS_ERROR("No plan found for returning to home configuration");
 		else{
 	    	ROS_INFO_STREAM("Plan found to return to home configuration in " << home_plan.planning_time_ << " seconds");
 	    
@@ -417,6 +440,10 @@ public:
 
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = arm_group.move();
+
+			feedback_.status = 7; // Arm is closed
+			as_.publishFeedback(feedback_);
+
 			if (!bool(e))
 			    ROS_ERROR("Error executing plan return to home configuration");
 			else
@@ -425,14 +452,13 @@ public:
     	
         
         return true;
-
-        // feedback_.status = 0;
-        // as_.publishFeedback(feedback_);
-
-        // feedback_.status = 1;
-        // as_.publishFeedback(feedback_);
     }
     
+	/**
+	 * @brief Adds the cylindes as collision objects
+	 * @param detections array containing all necessary info to create the collision objects, as poses and dimensions
+	 * @param correct_index index of the correct cylinder where we want to place the object 
+	 */
     void addPlaceCollisionCylinder(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
     	
     	std::vector<moveit_msgs::CollisionObject> collision_objects;
@@ -450,7 +476,6 @@ public:
 		primitive.dimensions[0] = 0.70;  // height
 		primitive.dimensions[1] = 0.22;  // radius
 		
-		// da vedere bene come vengono creati gli oggetti in rviz
 		cylinder_pose.position.x = detections[correct_index].pose.pose.pose.position.x;
 		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.2;
 		cylinder_pose.position.z = 0.35;
@@ -459,7 +484,7 @@ public:
 		cylinder_pose.orientation.z = 1.0;
 		cylinder_pose.orientation.w = 0.0;
 
-		place_cylinder.operation = 0; //ADD
+		place_cylinder.operation = place_cylinder.ADD;
 		
 		place_cylinder.primitives.push_back(primitive);
 	    place_cylinder.primitive_poses.push_back(cylinder_pose);
@@ -470,8 +495,18 @@ public:
 	}
     
 
+	/**
+	 * @brief places the object that tiago is holding in its gripper
+	 * @param detections array containing all necessary info to place the object, as poses and dimensions
+	 * @param correct_index index of the correct cylinder where we want to place the object
+	 * @return TRUE if executes correctly and FALSE otherwise.
+	 */
     bool place(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
 		
+		feedback_.status = 1; // Place Started
+		as_.publishFeedback(feedback_);
+
+
 		float table_height = 0.69;		
 		
 		geometry_msgs::PoseStamped appro_pose;
@@ -528,6 +563,9 @@ public:
 	    
 	    bool success = bool(arm_group.plan(appro_plan));
 
+		feedback_.status = 4; // Arm is moving
+		as_.publishFeedback(feedback_);
+
 	    if(!success)
 	        ROS_ERROR("No plan found for appro_pose");
 		else{
@@ -542,7 +580,6 @@ public:
 			else
 				ROS_INFO_STREAM("Motion to appro_pose ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
-		
 		
 		//set goal target
 	    arm_group.setPoseTarget(place_pose, "gripper_grasping_frame"); //appro
@@ -591,6 +628,10 @@ public:
 
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = gripper_group.move();
+
+			feedback_.status = 2; // Gripper is open
+			as_.publishFeedback(feedback_);
+
 			if (!bool(e))
 			    ROS_ERROR("Error executing plan opening gripper");
 			else
@@ -599,6 +640,9 @@ public:
 		
 		gripper_group.detachObject(std::to_string(detections[correct_index].id[0]));
 		
+		feedback_.status = 6; // Object placed
+		as_.publishFeedback(feedback_);
+
 		//come back to home_pose
 		moveit::planning_interface::MoveGroupInterface::Plan home_plan;
 		
@@ -624,13 +668,16 @@ public:
 			else
 				ROS_INFO_STREAM("Motion to return to home configuration ended, motion duration: " << (ros::Time::now() - start).toSec());
 		}
+
+		feedback_.status = 7; // Arm is closed
+		as_.publishFeedback(feedback_);
 	  	
         return true;
     }
 
 
     /**
-     * @brief Callback function for executing the navigation action.
+     * @brief Callback function for executing the manipulation action.
      * @param goal The goal for the pose action.
      */
     void executeCB(const assignment2::ArmGoalConstPtr &goal) { 

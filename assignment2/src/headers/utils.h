@@ -7,8 +7,6 @@
 #include <utility>
 #include <cmath>
 #include "assignment2/Detection.h"
-#include "assignment2/Object.h"
-#include "Object.h"
 
 enum class Status {
     PickStarted = 0,
@@ -32,7 +30,5 @@ struct PoseID{
 
 float degreesToRadians(float degrees);
 CartesianCoordinates polarToCartesian(float r, float theta);
-std::vector<assignment2::Object> convertToMsgType(const std::vector<Object>& objects);
-std::vector<Object> convertToObjectType(const std::vector<assignment2::Object>& msgObjects);
 
 #endif // UTILS_H
