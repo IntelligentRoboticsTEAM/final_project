@@ -26,6 +26,7 @@
 #include <vector>
 #include <map>
 #include <cmath>
+#include <unistd.h>
 
 
 class ArmAction {
@@ -266,6 +267,39 @@ public:
         		break;
         }
         
+        
+        //open gripper (safety measure)
+		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
+		
+		gripper_group.setStartStateToCurrentState();
+		gripper_group.setPlanningTime(5.0);
+		
+		std::vector<double> open_gripper_values;
+		open_gripper_values.push_back(0.044);
+		open_gripper_values.push_back(0.044);
+		gripper_group.setJointValueTarget(open_gripper_values);
+		
+    	bool success = bool(gripper_group.plan(gripper_plan));
+
+	    if(!success)
+	        ROS_ERROR("No plan found for opening gripper");
+		else{
+	    	ROS_INFO_STREAM("Plan found for opening gripper in " << gripper_plan.planning_time_ << " seconds");
+	    
+			ros::Time start = ros::Time::now();
+
+			// Execute the Movement
+			moveit::core::MoveItErrorCode e = gripper_group.move();
+			sleep(2);
+
+			feedback_.status = 2; // Gripper is open
+			as_.publishFeedback(feedback_);
+
+			if (!bool(e))
+			    ROS_ERROR("Error executing plan opening gripper");
+			else
+				ROS_INFO_STREAM("Motion to opening gripper ended, motion duration: " << (ros::Time::now() - start).toSec());
+		}
 
 		// Creating plan for appro
 	    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
@@ -284,7 +318,7 @@ public:
 	    arm_group.setPoseTarget(appro_pose, "gripper_grasping_frame"); //appro
 	    arm_group.setPlanningTime(7.0);
 	    
-	    bool success = bool(arm_group.plan(my_plan));
+	    success = bool(arm_group.plan(my_plan));
 
 		feedback_.status = 4; // Arm is moving
 		as_.publishFeedback(feedback_);
@@ -340,7 +374,7 @@ public:
     	
     	
 		//close the gripper 
-		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
+		//moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
 		
 		arm_group.setPlannerId("SBLkConfigDefault");
 		gripper_group.setStartStateToCurrentState();
@@ -536,7 +570,7 @@ public:
         		place_pose.pose.position.z = table_height + 0.17; 
         		break;
         	default:
-        		place_pose.pose.position.z = table_height + 0.11; 
+        		place_pose.pose.position.z = table_height + 0.12; 
         		break;
         }
         
@@ -628,6 +662,7 @@ public:
 
 			// Execute the Movement
 			moveit::core::MoveItErrorCode e = gripper_group.move();
+			sleep(2);
 
 			feedback_.status = 2; // Gripper is open
 			as_.publishFeedback(feedback_);

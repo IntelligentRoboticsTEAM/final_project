@@ -125,17 +125,17 @@ int main(int argc, char **argv) {
 		The invoked function will scan the positions of the cylinders and will be able to recognize the colors of the cylinders using OPENCV.
 		It will return scanResponse, that associates the right IDs (of color) with the right Positions of the cylinders.
 	*/ 
-		if(i == 0){		
-			msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
-			returnVal = doScan(scan_client, scanResponse, msg);
-			if(returnVal == 1) return 1;
-			else returnVal = 0;
 			
-			for(int i = 0; i < scanResponse.size(); i++){
-				ids.push_back(scanResponse[i].id[0]);
-			}
+		msg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", nh);
+		returnVal = doScan(scan_client, scanResponse, msg);
+		if(returnVal == 1) return 1;
+		else returnVal = 0;
+		
+		for(int i = 0; i < scanResponse.size(); i++){
+			ids.push_back(scanResponse[i].id[0]);
+		}
 	 		
-	 	}
+	 	
 	 	
 		int correct_index;
 		for(int k = 0; k < ids.size(); k++)
