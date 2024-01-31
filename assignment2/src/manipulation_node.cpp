@@ -51,7 +51,7 @@ public:
     
     ~ArmAction(void){}
     
-     moveit_msgs::CollisionObject addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detections)
+     void addCollisionObjects(std::vector<apriltag_ros::AprilTagDetection> detections)
      {
 		std::vector<moveit_msgs::CollisionObject> collision_objects;
 
@@ -86,8 +86,6 @@ public:
 		collision_objects.push_back(table_object);
 		
 		
-		moveit_msgs::CollisionObject return_object;
-		
 		for(int i = 0; i < detections.size(); i++)
 		{
 			moveit_msgs::CollisionObject obstacle_object;
@@ -114,15 +112,14 @@ public:
 					object_pose.orientation = detections[i].pose.pose.pose.orientation;
 					
 					ROS_INFO("Blue hegaxon height: %f", (float)obj_primitive.dimensions[0]);
-					return_object = obstacle_object;
 					
 					break;
 				case 2: 					
 					 obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
 					 obj_primitive.dimensions.resize(3);
 					 obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
-					 obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
-					 obj_primitive.dimensions[2] = detections[i].size[0] + 0.015;  // z dimension
+					 obj_primitive.dimensions[1] = ((detections[i].size[0] + 0.015) * sqrt(2)) * 2;  // y dimension
+					 obj_primitive.dimensions[2] = (detections[i].size[0] + 0.015) * sqrt(2);  // z dimension
 					 
 					 object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015; 
 					 object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
@@ -135,8 +132,6 @@ public:
 					 obj2_orient.setRPY(roll, pitch, yaw);
 					 obj2_orient.normalize();
 					 object_pose.orientation = tf2::toMsg(obj2_orient);
-					 
-					 return_object = obstacle_object;
 					 
 					 break;
 					
@@ -151,8 +146,6 @@ public:
 					object_pose.position.y = detections[i].pose.pose.pose.position.y;
 					object_pose.position.z = detections[i].pose.pose.pose.position.z - obj_primitive.dimensions[2] / 2;
 					object_pose.orientation = detections[i].pose.pose.pose.orientation;
-					
-					return_object = obstacle_object;
 					
 					break;
 					
@@ -179,8 +172,6 @@ public:
 		}
 		
 		planning_scene_interface.applyCollisionObjects(collision_objects);
-		
-		return return_object;
 	}
 
 	
@@ -238,7 +229,7 @@ public:
 				
         		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x + 0.015;
         		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y + 0.015;
-        		goal_pose.pose.position.z =  0.755 + 0.13;
+        		goal_pose.pose.position.z =  0.755 + 0.12;
         		goal_pose.pose.orientation = appro_pose.pose.orientation;
         		
         		break;
@@ -256,7 +247,7 @@ public:
 				
         		goal_pose.pose.position.x = detections[detection_index].pose.pose.pose.position.x;
         		goal_pose.pose.position.y = detections[detection_index].pose.pose.pose.position.y;
-        		goal_pose.pose.position.z = 0.755 + 0.13; 
+        		goal_pose.pose.position.z = 0.755 + 0.12; 
         		goal_pose.pose.orientation = appro_pose.pose.orientation;
         		break;
         	default:
@@ -461,10 +452,9 @@ public:
 		primitive.dimensions[0] = 0.70;  // height
 		primitive.dimensions[1] = 0.22;  // radius
 		
-		//ROS_INFO("Z dimension: %f", primitive.dimensions[0]); //height
-		
+		// da vedere bene come vengono creati gli oggetti in rviz
 		cylinder_pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.2;
 		cylinder_pose.position.z = 0.35;
 		cylinder_pose.orientation.x = 0.0;
 		cylinder_pose.orientation.y = 0.0;
@@ -484,16 +474,18 @@ public:
 
     bool place(std::vector<apriltag_ros::AprilTagDetection> detections, int correct_index){
 		
+		float table_height = 0.69;		
+		
 		geometry_msgs::PoseStamped appro_pose;
         appro_pose.header.frame_id = "map";
         appro_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
-        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.z + 0.20;
+        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.20;
+        appro_pose.pose.position.z = table_height + 0.20;
 		
 		geometry_msgs::PoseStamped place_pose;
         place_pose.header.frame_id = "map";
         place_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-        place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
+        place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.20;
         
 		double roll = 0.0;
 		double pitch = M_PI / 2;
@@ -505,16 +497,16 @@ public:
 		place_pose.pose.orientation = tf2::toMsg(rotation_about_y);
 		appro_pose.pose.orientation = tf2::toMsg(rotation_about_y);
         
-        float table_height = 0.69;
         
         switch(detections[correct_index].id[0]){
         	case 1:
-        		place_pose.pose.position.z = table_height + 0.25; 
+        		place_pose.pose.position.z = table_height + 0.18; 
         		break;
         	default:
-        		place_pose.pose.position.z = table_height + 0.14; 
+        		place_pose.pose.position.z = table_height + 0.12; 
         		break;
         }
+        
         
         //create place plan and execute associated motion
         moveit::planning_interface::MoveGroupInterface::Plan appro_plan;
@@ -621,7 +613,7 @@ public:
     	success = bool(arm_group.plan(home_plan));
 
 	    if(!success)
-	        ROS_ERROR("No plan found for closing gripper");
+	        ROS_ERROR("No plan found for home_plan");
 		else{
 	    	ROS_INFO_STREAM("Plan found to return to home configuration in " << home_plan.planning_time_ << " seconds");
 	    

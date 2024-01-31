@@ -271,18 +271,6 @@ int doScan(ros::ServiceClient &scan_client, std::vector<apriltag_ros::AprilTagDe
         return 1;
     }
     
-
-    /*for (int i = 0; i < std::min(srv3.response.ids_associated_colors.size(), srv2.response.poses.size()); ++i) {
-        PoseID poseID;
-        poseID.id = srv3.response.ids_associated_colors[i];
-        poseID.pose.x = srv2.response.poses[i].position.x;
-        poseID.pose.y = srv2.response.poses[i].position.y;
-
-        poseIDVector.push_back(poseID);
-        
-        ROS_INFO("ID: %d, Position: (%.2f, %.2f)", poseID.id, poseID.pose.x, poseID.pose.y);
-    }*/
-    
     return 0;
 }
 
@@ -297,7 +285,7 @@ int doPick(int object_order, ros::ServiceClient &detectionClient , actionlib::Si
 	
 	//if the service call was successful
     if(detectionClient.call(detection_srv)){
-        ROS_INFO("Detection done, tag id returned in base_footprint reference frame");
+        ROS_INFO("Detection done, tag id returned in map reference frame");
         
         //construct goal for manipulation node
         armGoal.request = 1; 
@@ -346,12 +334,12 @@ int doPlace(int object_order, std::vector<apriltag_ros::AprilTagDetection> tempR
 	    actionlib::SimpleClientGoalState state = acManipulation.getState();
 	    ROS_INFO("Action finished: %s", state.toString().c_str());
 	    if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
-			ROS_INFO("Pick done");
+			ROS_INFO("Place done");
 	    }
 	} else {
-	    ROS_INFO("Pick action did not finish before the timeout.");
+	    ROS_INFO("Place action did not finish before the timeout.");
 	    acManipulation.cancelGoal();
-	    ROS_INFO("Pick goal has been cancelled");
+	    ROS_INFO("Place goal has been cancelled");
 	}
 	
     return 0;

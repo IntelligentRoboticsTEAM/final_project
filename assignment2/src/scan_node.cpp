@@ -78,7 +78,6 @@ int main(int argc, char** argv) {
 */ 
 bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &res){
 
-	ROS_INFO("Incoming request: %s", req.ready ? "true" : "false");
 	ROS_INFO("Starting Scan of cylinders POSITIONS...");
 	
 	//Get laser info from correct topic
@@ -114,16 +113,16 @@ bool scanResultCB(assignment2::Scan::Request &req, assignment2::Scan::Response &
 		try
 		{
 			tf::TransformListener tfListener;
-			tfListener.waitForTransform("/base_laser_link", "/odom", ros::Time(0), ros::Duration(3.0));
-			tfListener.transformPose("/odom", in_out_point, in_out_point);
+			tfListener.waitForTransform("/base_laser_link", "/map", ros::Time(0), ros::Duration(3.0));
+			tfListener.transformPose("/map", in_out_point, in_out_point);
 		}
 		catch (tf::TransformException& ex)
 		{
-			ROS_ERROR("Failed to transform point to /odom: %s", ex.what());
+			ROS_ERROR("Failed to transform point to /map: %s", ex.what());
 			return false;
 		}
 		
-		ROS_INFO("Poses[%d] in /odom = x: %f, y: %f, z: %f", i, in_out_point.pose.position.x, in_out_point.pose.position.y, in_out_point.pose.position.x);
+		ROS_INFO("Poses[%d] in /map = x: %f, y: %f, z: %f", i, in_out_point.pose.position.x, in_out_point.pose.position.y, in_out_point.pose.position.x);
 		
 		return_vec.push_back(in_out_point.pose);
 	}

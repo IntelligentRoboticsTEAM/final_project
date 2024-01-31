@@ -5,14 +5,24 @@ Nicola Calzone, nicola.calzone@studenti.unipd.it
 Leonardo Da Re, leonardo.dare@studenti.unipd.it
 Nicolò Tesser, nicolo.tesser@studenti.unipd.it
 
-INSTRUCTIONS to run Assignment 2:
+INSTRUCTIONS to run Assignment 2
+
+Inside a terminal run the following commands:
+
+0. clone bitbucket repository into src folder of catkin workspace
 1. start_tiago
-source /opt/ros/noetic/setup.bash
-source /tiago_public_ws/devel/setup.bash
-source ~/catkin_ws/devel/setup.bash
-5. catkin build 
-roslaunch assignment2 assignment2.launch
-7. rosrun assignment2 clientNode
+2. source /opt/ros/noetic/setup.bash
+3. source /tiago_public_ws/devel/setup.bash
+4. source ~/catkin_ws/devel/setup.bash
+5. catkin build
+6. roslaunch assignment2 assignment2.launch
+
+In another terminal run:
+1. start_tiago
+2. source /opt/ros/noetic/setup.bash
+3. source /tiago_public_ws/devel/setup.bash
+4. source ~/catkin_ws/devel/setup.bash
+5. rosrun assignment2 client_node
 
 
-Google Drive video: da_mettere
+Google Drive link_to_video: https...
