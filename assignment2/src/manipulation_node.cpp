@@ -121,7 +121,7 @@ public:
 					 obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
 					 obj_primitive.dimensions.resize(3);
 					 obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
-					 obj_primitive.dimensions[1] = ((detections[i].size[0] + 0.015) * sqrt(2)) * 2;  // y dimension
+					 obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
 					 obj_primitive.dimensions[2] = (detections[i].size[0] + 0.015) * sqrt(2);  // z dimension
 					 
 					 object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015; 
@@ -477,7 +477,7 @@ public:
 		primitive.dimensions[1] = 0.22;  // radius
 		
 		cylinder_pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.2;
+		cylinder_pose.position.y = detections[correct_index].pose.pose.pose.position.y;
 		cylinder_pose.position.z = 0.35;
 		cylinder_pose.orientation.x = 0.0;
 		cylinder_pose.orientation.y = 0.0;
@@ -512,13 +512,13 @@ public:
 		geometry_msgs::PoseStamped appro_pose;
         appro_pose.header.frame_id = "map";
         appro_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.20;
+        appro_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
         appro_pose.pose.position.z = table_height + 0.20;
 		
 		geometry_msgs::PoseStamped place_pose;
         place_pose.header.frame_id = "map";
         place_pose.pose.position.x = detections[correct_index].pose.pose.pose.position.x;
-        place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y + 0.20;
+        place_pose.pose.position.y = detections[correct_index].pose.pose.pose.position.y;
         
 		double roll = 0.0;
 		double pitch = M_PI / 2;
@@ -533,10 +533,10 @@ public:
         
         switch(detections[correct_index].id[0]){
         	case 1:
-        		place_pose.pose.position.z = table_height + 0.18; 
+        		place_pose.pose.position.z = table_height + 0.17; 
         		break;
         	default:
-        		place_pose.pose.position.z = table_height + 0.12; 
+        		place_pose.pose.position.z = table_height + 0.11; 
         		break;
         }
         
@@ -610,7 +610,7 @@ public:
 		moveit::planning_interface::MoveGroupInterface::Plan gripper_plan;
 		
 		gripper_group.setStartStateToCurrentState();
-		gripper_group.setPlanningTime(2.0);
+		gripper_group.setPlanningTime(5.0);
 		
 		std::vector<double> open_gripper_values;
 		open_gripper_values.push_back(0.044);
