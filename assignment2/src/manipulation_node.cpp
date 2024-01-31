@@ -111,8 +111,6 @@ public:
 					object_pose.position.z = detections[i].pose.pose.pose.position.z - obj_primitive.dimensions[0] / 2;
 					object_pose.orientation = detections[i].pose.pose.pose.orientation;
 					
-					ROS_INFO("Blue hegaxon height: %f", (float)obj_primitive.dimensions[0]);
-					
 					break;
 				case 2: 					
 					 obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
