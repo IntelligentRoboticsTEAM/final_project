@@ -36,45 +36,11 @@ find_package(OpenCV REQUIRED COMPONENTS
 
 roslaunch_add_file_check(launch)
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
-
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
-
-################################################
-## Declare ROS messages, services and actions ##
-################################################
-
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend tag for "message_generation"
-##   * add a build_depend and a exec_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
-##     but can be declared for certainty nonetheless:
-##     * add a exec_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
-
-## Generate messages in the 'msg' folder
+## Generate services in the 'msg' folder
 add_message_files(
-#   DIRECTORY msg
-   FILES 
-   Obstacle.msg 
-   Object.msg
+  FILES
+  Obstacle.msg
+  Object.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -122,57 +88,59 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# List of source files for poseServerRevisited
-set(SOURCE_FILES_SERVER_REVISITED
-  src/poseServerRevisited.cpp
+# List of source files for navigation_node
+set(SOURCE_FILES_NAVIGATION
+  src/navigation_node.cpp
   src/utils/navigation_methods.cpp
   src/utils/utils.cpp  
 )
-# List of source files for clientNode
-set(SOURCE_FILES_CLIENT_NODE
-  src/clientNode.cpp
-  src/utils/navigation_methods.cpp
-  src/utils/utils.cpp  
+# List of source files for detection_node
+set(SOURCE_FILES_DETECTION
+  src/detection_node.cpp 
+  src/utils/utils.cpp 
 )
-set(SOURCE_FILES_HANDLER_NODE
-  src/Handler.cpp
+
+# List of source files for client_node
+set(SOURCE_FILES_CLIENT
+  src/client_node.cpp
   src/utils/navigation_methods.cpp
   src/utils/utils.cpp  
 )
 
-set(SOURCE_FILES_SCAN_NODE
-  src/imageScanNode.cpp 
+#List of source file for scan_node
+set(SOURCE_FILES_SCAN
+  src/scan_node.cpp 
   src/utils/utils.cpp 
   src/utils/scan_methods.cpp
 )
 
+#List of source file for manipulation_node
+set(SOURCE_FILES_MANIPULATION
+  src/manipulation_node.cpp 
+  src/utils/utils.cpp 
+)
 
-# poseServerRevisited executable
-add_executable(poseServerRevisited ${SOURCE_FILES_SERVER_REVISITED})
-target_link_libraries(poseServerRevisited ${catkin_LIBRARIES})
-add_dependencies(poseServerRevisited ${assignment2_EXPORTED_TARGETS})
+# naigation_node executable
+add_executable(navigation_node ${SOURCE_FILES_NAVIGATION})
+target_link_libraries(navigation_node ${catkin_LIBRARIES})
+add_dependencies(navigation_node ${assignment2_EXPORTED_TARGETS})
 
-#detectionNode executable
-add_executable(detectionNode src/detectionNode.cpp src/utils/utils.cpp)
-target_link_libraries(detectionNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(detectionNode ${assignment2_EXPORTED_TARGETS})
+#detection_node executable
+add_executable(detection_node ${SOURCE_FILES_DETECTION})
+target_link_libraries(detection_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+add_dependencies(detection_node ${assignment2_EXPORTED_TARGETS})
 
-#manipulationNode executable
-add_executable(manipulationNode src/manipulationNode.cpp src/utils/utils.cpp)
-target_link_libraries(manipulationNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(manipulationNode ${assignment2_EXPORTED_TARGETS})
+#manipulation_node executable
+add_executable(manipulation_node ${SOURCE_FILES_MANIPULATION})
+target_link_libraries(manipulation_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+add_dependencies(manipulation_node ${assignment2_EXPORTED_TARGETS})
 
-#scanNode executable
-add_executable(scanNode ${SOURCE_FILES_SCAN_NODE} )
-target_link_libraries(scanNode ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
-add_dependencies(scanNode ${assignment2_EXPORTED_TARGETS})
+#scan_node executable
+add_executable(scan_node ${SOURCE_FILES_SCAN} )
+target_link_libraries(scan_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+add_dependencies(scan_node ${assignment2_EXPORTED_TARGETS})
 
-# clientNode executable
-add_executable(clientNode ${SOURCE_FILES_CLIENT_NODE})
-target_link_libraries(clientNode ${catkin_LIBRARIES})
-add_dependencies(clientNode ${assignment2_EXPORTED_TARGETS})
-
-# clientNode executable
-add_executable(handler ${SOURCE_FILES_HANDLER_NODE})
-target_link_libraries(handler ${catkin_LIBRARIES})
-add_dependencies(handler ${assignment2_EXPORTED_TARGETS})
+# client_node executable
+add_executable(client_node ${SOURCE_FILES_CLIENT})
+target_link_libraries(client_node ${catkin_LIBRARIES})
+add_dependencies(client_node ${assignment2_EXPORTED_TARGETS})

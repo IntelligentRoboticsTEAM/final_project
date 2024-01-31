@@ -17,21 +17,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <apriltag_ros/AprilTagDetectionArray.h>
 
-/*
-ros::Time latestImageStamp;
 
-// ROS call back for every new image received
-void imageCallback(const sensor_msgs::ImageConstPtr& imgMsg)
-{		
-	latestImageStamp = imgMsg->header.stamp;
-
-	cv_bridge::CvImagePtr cvImgPtr;
-	cvImgPtr = cv_bridge::toCvCopy(imgMsg, sensor_msgs::image_encodings::BGR8);
-	
-	cv::imshow("Inside of TIAGo's head", cvImgPtr->image);
-	cv::waitKey(15);
-}
-*/
 
 bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Response &res){
 
@@ -50,9 +36,6 @@ bool detectTags(assignment2::Detection::Request &req, assignment2::Detection::Re
 	if(iterations == max_iterations)
 	    ROS_ERROR("Error in create PointHeadClient: head controller action server not available");
 
-	//Get camera info from correct topic
-	//sensor_msgs::CameraInfoConstPtr msg = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("/xtion/rgb/camera_info", ros::Duration(10.0));
-	
 	
 	//define a target point to make tiago point at (center of table to detect tags)
 	geometry_msgs::PointStamped pointDown; 
@@ -195,21 +178,6 @@ int main(int argc, char** argv)
 	ROS_INFO("Starting QR pose detection application ...");
 	
 	ros::ServiceServer service = n.advertiseService("/object_detection", detectTags);
-	
-	/*
-	// Create the window to show TIAGo's camera images
-	cv::namedWindow("Inside of TIAGo's head", cv::WINDOW_AUTOSIZE);
-	
-	// Define ROS topic from where TIAGo publishes images
-	image_transport::ImageTransport it(n);
-	// use compressed image transport to use less network bandwidth
-	image_transport::TransportHints transportHint("compressed");
-
-	//ROS_INFO_STREAM("Subscribing to " << imageTopic << " ...");
-	image_transport::Subscriber subToImage = it.subscribe("/xtion/rgb/image_raw", 1, imageCallback, transportHint);
-
-	cv::destroyWindow("Inside of TIAGo's head");
-	*/
 	
 	ros::spin();
 	
