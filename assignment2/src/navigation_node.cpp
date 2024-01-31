@@ -75,7 +75,21 @@ public:
 			as_.publishFeedback(feedback_);
 		
             
+        }else
+        {
+        	feedback_.status = 1;
+			as_.publishFeedback(feedback_);
+            
+            // tiago started crashing into the table after taking the 1st video, so we added this waypoint
+            navigateRobotToGoal(8.0, -4.3, 0.0, 0.0);
+            
+            feedback_.status = 2;
+            as_.publishFeedback(feedback_);
+            
+            feedback_.status = 0;
+			as_.publishFeedback(feedback_);
         }
+        
 
         // 2nd Waypoint to look at the cylinders from the center
 		feedback_.status = 1;
