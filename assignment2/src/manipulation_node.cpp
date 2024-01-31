@@ -121,8 +121,8 @@ public:
 					 obj_primitive.type = shape_msgs::SolidPrimitive::BOX;
 					 obj_primitive.dimensions.resize(3);
 					 obj_primitive.dimensions[0] = detections[i].size[0] + 0.015;  // x dimension
-					 obj_primitive.dimensions[1] = detections[i].size[0] + 0.015;  // y dimension
-					 obj_primitive.dimensions[2] = (detections[i].size[0] + 0.015) * sqrt(2);  // z dimension
+					 obj_primitive.dimensions[1] = 2 * (detections[i].size[0] + 0.015) * sqrt(2) / 2;  // y dimension
+					 obj_primitive.dimensions[2] = (detections[i].size[0] + 0.015) * sqrt(2) / 2;  // z dimension
 					 
 					 object_pose.position.x = detections[i].pose.pose.pose.position.x + 0.015; 
 					 object_pose.position.y = detections[i].pose.pose.pose.position.y + 0.015;
